@@ -1,0 +1,42 @@
+TODO list for PyClient
+
+
+HIGH PRIORITY
+=============
+* Auto-login
+* Auto-TA2 mode
+* Logging (HTML)
+* Ignore TA2 keepalive lines/XML
+* Resizing bugs: slow making-it-smaller, not being able to resize it to smaller
+* Sensible plugin architecture
+  (more for me than for users -- makes it easy to implement this stuff)
+
+MEDIUM PRIORITY
+===============
+* Tabs for .whisper and .tell
+* /ping
+* /connect ip:port (or /connect ip port)
+* Parse and understand XML from TA
+* Command history
+* Command name suggestion or autocomplete
+* Taskbar flash (can GTK even do this?)
+
+LOW PRIORITY
+============
+* URL detection is somewhat fragile - if they're broken by a tag or a *pause
+  in transmission*, they'll get screwed up
+* URL regex is a little wonky and does a lot of false positives
+* Protect against link double-click
+* Invisible cursor? (right now it's just black)
+* Make numpad enter work
+* // currently becomes /, but this interferes with pasting C code
+* Automatically change from gtk.WRAP_WORD_CHAR to gtk.WRAP_WORD
+  (with scroll auto) if we're not running GTK 2.4+
+* *Rigorous* ability to /eval multiline bits of Python
+* Better command param parsing mechanism
+* URL history
+* Nicer package-for-distribution system
+* Trigger system
+* Remove trailing whitespace line (??? - what does this mean?)
+  (Maybe it means regarding /eval's that return None!)
+

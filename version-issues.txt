@@ -1,0 +1,21 @@
+Version/Compatibility Issues! YAY!
+
+<ravuya> PyClient 0.02a-dev / Python 2.3.4 / GTK 2.4.9 / PyGTK 2.0.0 / Twisted 2.0.0
+<tweedledee> PyClient 0.02a-dev / Python 2.3.4 / GTK 2.4.9 / PyGTK 2.2.0 / Twisted 1.3.0rc1
+
+Rav says it's a little slow
+<ravuya> powerbook g4 1.33 12"
+<ravuya> osx 10.3.8
+
+PyGTK 2.0.0 and 2.2.0:
+<ravuya> Traceback (most recent call last):
+<ravuya>   File "/Users/mike/Desktop/pyclient-0.02a-dev/GTKClient.py", line 102, in _textEvent
+<ravuya>     gobject.spawn_async(['/bin/sh', '-c', browserCmd])
+<ravuya> AttributeError: 'module' object has no attribute 'spawn_async'
+
+twee's Python 2.3.4:
+* no MiniDOM, had to comment that out (however, Rav has it!)
+
+twee's KDE install:
+* background color changing of output control refuses to work (this worked before with same system)
+* also, links have a white background (because I strip *all* tags)

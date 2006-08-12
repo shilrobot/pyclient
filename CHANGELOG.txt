@@ -1,0 +1,30 @@
+Stuff that's changed...
+
+0.04 "Mexican Magic Realism"
+* Browser launching now uses standard Python webbrowser.py module.
+  This appears to work just as well as using gobject.launch_async,
+  and supports more types of browsers (not to mention being
+  already tested.) This eliminates the 'apps/browser-command'
+  config key.
+* Configuration path works on Windows (currently it goes in
+  %HOMEDRIVE%%HOMEPATH%\.pyclient, e.g.
+  C:\Documents and Settings\shilbert\.pyclient
+  
+0.03 "Sick Sense That Reality Is Broken":
+* Configuration system actually loads/saves to ~/.pyclient. Currently this is
+  simply a pickled dictionary.
+* Added menubar.
+* Added toolbar.
+* Added statusbar.
+* /eval now maintains state between calls. To clear the state, you can go /eval reset.
+* All TA protocol related code is abstracted into the module 'ta2'
+* Nasty hang-on-exit problem due to Twisted 2.0 fixed.
+* PyClient remembers where your window was and how large you had made your input
+  text area.
+
+0.02 "Wide-Ranging Tentacle-Oriented Policies":
+* TA2 protocol support (may have to go .advproto to turn it on)
+* Clickable URLs
+* More robust parser
+* /quit (closes everything)
+* /clear (clears the text pane)
