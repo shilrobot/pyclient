@@ -6,7 +6,7 @@ import os
 # We use os.path.expanduser() instead of directly accessing the $HOME environment
 # variable because it also works for us neatly on Windows.
 #CONFIG_PATH = os.path.join(os.environ['HOME'], '.pyclient')
-CONFIG_PATH = os.path.expanduser('~/.pyclient')
+CONFIG_PATH = os.path.expanduser('~/.pyclient/pyclient.cfg')
 
 def load_config():
 	"""Load configuration information."""

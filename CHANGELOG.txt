@@ -1,5 +1,8 @@
 Stuff that's changed...
 
+0.05 "She Plays Darts Like a Spanner"
+* PyClient is resurrected from BEYOND THE GRAVE
+
 0.04 "Mexican Magic Realism"
 * Browser launching now uses standard Python webbrowser.py module.
   This appears to work just as well as using gobject.launch_async,

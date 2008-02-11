@@ -1,12 +1,12 @@
 TODO list for PyClient
 
-
 HIGH PRIORITY
 =============
+* Configuration dialog
 * Auto-login
 * Auto-TA2 mode
 * Logging (HTML)
-* Ignore TA2 keepalive lines/XML
+* Ignore TA2 keepalive lines/XML newlines
 * Resizing bugs: slow making-it-smaller, not being able to resize it to smaller
 * Sensible plugin architecture
   (more for me than for users -- makes it easy to implement this stuff)
@@ -16,10 +16,15 @@ MEDIUM PRIORITY
 * Tabs for .whisper and .tell
 * /ping
 * /connect ip:port (or /connect ip port)
+* /reconnect
 * Parse and understand XML from TA
+  -- Expose to plugins in easy to understand ways
 * Command history
 * Command name suggestion or autocomplete
 * Taskbar flash (can GTK even do this?)
+  -- GAIM sure as hell does
+  -- At least we could have the title change back and forth
+* Searching in logs
 
 LOW PRIORITY
 ============
