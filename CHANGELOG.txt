@@ -2,6 +2,11 @@ Stuff that's changed...
 
 0.05 "She Plays Darts Like a Spanner"
 * PyClient is resurrected from BEYOND THE GRAVE
+* Config information is now placed in the same directory as pyclient
+  (No need to make a .pyclient directory, most people are going to run out
+   of the directory extracted from a tarball anyway)
+* Config information stored in XML format which is cleaner than
+  Python pickling
 
 0.04 "Mexican Magic Realism"
 * Browser launching now uses standard Python webbrowser.py module.

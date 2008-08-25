@@ -31,8 +31,8 @@ class TwistedClient(ClientCore, ClientFactory):
 		if isinstance(event, str) and event != '':
 			self.echo("Connect with params not configured yet :(")
 		if self.state == STATE_DISCONNECTED: 
-			reactor.connectTCP(Config.get('server/host'),
-								Config.get('server/port'),
+			reactor.connectTCP(Config.getStr('server/host'),
+								Config.getInt('server/port'),
 								self)
 			self.echo('Connecting...')
 			self._enterState(STATE_CONNECTING)

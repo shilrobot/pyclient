@@ -1,6 +1,6 @@
 from twisted.internet.protocol import Protocol
 from LineParser import *
-from elementtree.ElementTree import fromstring
+from xml.etree.ElementTree import fromstring
 
 # TODO: Reconcile TA2Protocol's keeping a separate LineParser for every connection
 #       and the way PyClient used to work -- keeping one LineParser that everything

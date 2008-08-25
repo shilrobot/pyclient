@@ -12,12 +12,13 @@ class GTKClient(TwistedClient):
 	"""Controls the main client window"""
 	
 	# OH GOD THIS FUNCTION IS TOO LONG
-	def __init__(self):
+	def __init__(self, client):
 		TwistedClient.__init__(self)
 		
 		# Set up the main window frame
 		self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-		self.window.set_icon_from_file('./logo.png')
+		# TODO: This doesn't work if we don't run from the base dir!
+		self.window.set_icon_from_file('./logo-new.png')
 		#self.window.set_border_width(5)
 		self.window.connect('delete_event', self.delete_event)
 		self.window.connect('destroy', self.destroy)
@@ -31,7 +32,7 @@ class GTKClient(TwistedClient):
 		# Create the scrollbar for the output window
 		self.scroll = gtk.ScrolledWindow()
 		hpolicy = gtk.POLICY_AUTOMATIC
-		if Config.get('output/gtk24wrapping'):
+		if Config.getBool('output/gtk24wrapping'):
 			hpolicy = gtk.POLICY_NEVER
 		self.scroll.set_policy(hpolicy, gtk.POLICY_ALWAYS)
 		# TODO: Remove the border between the scrollbar & the control!
@@ -42,7 +43,7 @@ class GTKClient(TwistedClient):
 
 		# Create the input box
 		self.input = gtk.TextView()
-		self.input.modify_font(pango.FontDescription(Config.get('input/font')))
+		self.input.modify_font(pango.FontDescription(Config.getStr('input/font')))
 		self.input.set_size_request(25,25)
 		self.input.connect('key-press-event', self.key_press_event)
 		self.input.show()
@@ -126,6 +127,10 @@ class GTKClient(TwistedClient):
 								'Quits the client.')
 		self.registerCommand('testlogin', self.testLogin, None, 'Tests login dialog')
 
+		self._client = client
+		self._client.register('conn.dataReceived', self._onDataReceived)
+		self._client.register('client.echo', self._onEcho)
+		
 		#self.updateUI()
 		self.stateChanged(self.state)
 
@@ -134,24 +139,25 @@ class GTKClient(TwistedClient):
 
 	def restoreWindowPosition(self):
 		"""Restores the old window configuration from the config file."""
-		# TODO: Restore maximization state
-		pos = Config.get('ui/pos')
-		size = Config.get('ui/size')
-		planePos = Config.get('ui/panePos')
-		if pos is not None:
-			self.window.move(*pos)
-		self.window.resize(*size)
-		if planePos is not None:
-			self.panes.set_position(planePos)			
+		if Config.hasKey('ui/posX') and Config.hasKey('ui/posY'):
+			self.window.move(Config.getInt('ui/posX'),
+							 Config.getInt('ui/posY'))
+		if Config.hasKey('ui/sizeX') and Config.hasKey('ui/sizeY'):
+			self.window.resize(Config.getInt('ui/sizeX'),
+							 Config.getInt('ui/sizeY'))
+		if Config.hasKey('ui/panePos'):
+			self.panes.set_position(Config.getInt('ui/panePos'))
 	
 	def saveWindowSettings(self):
 		"""Saves the window position to a config file."""
 		# TODO: This doesn't get called when we Ctrl+C pyclient
 		# 		from a terminal
 		# TODO: Save maximization state
-		Config.set('ui/pos', self.window.get_position())
-		Config.set('ui/size', self.window.get_size())
-		Config.set('ui/panePos', self.panes.get_position())
+		Config.setInt('ui/posX', self.window.get_position()[0])
+		Config.setInt('ui/posY', self.window.get_position()[1])
+		Config.setInt('ui/sizeX', self.window.get_size()[0])
+		Config.setInt('ui/sizeY', self.window.get_size()[1])
+		Config.setInt('ui/panePos', self.panes.get_position())
 
 	def createActions(self):
 		ui = '''\
@@ -235,13 +241,15 @@ class GTKClient(TwistedClient):
 	def key_press_event(self, widget, event, data=None):
 		if event.string == '\r' and not (event.state & gtk.gdk.SHIFT_MASK):
 			if isinstance(self.input, gtk.Entry):
-				self.interpret(self.input.get_text())
+				#self.interpret(self.input.get_text())
+				self._client.execute(self.input.get_text())
 				self.input.set_text('')
 			elif isinstance(self.input, gtk.TextView):
 				buffer = self.input.get_buffer()
 				start, end = buffer.get_bounds()
 				text = buffer.get_text(start,end)
-				self.interpret(text)
+				#self.interpret(text)
+				self._client.execute(text)
 				buffer.set_text('')
 			return True
 
@@ -271,7 +279,7 @@ class GTKClient(TwistedClient):
 		reactor.stop()
 		
 	def onReceiveText(self, text):
-		self.output.write(text)		
+		self.output.write(text)
 
 	def quit(self, args=''):
 		self.destroy()
@@ -292,3 +300,8 @@ class GTKClient(TwistedClient):
 		self.statusbar.push(0, "PyClient %s / %s" % (Version.VERSION, statename))
 
 
+	def _onEcho(self, line):
+		self.onReceiveText(line+"\r\n")
+		
+	def _onDataReceived(self, data):
+		self.onReceiveText(text)

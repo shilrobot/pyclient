@@ -20,7 +20,7 @@ class GTKOutputCtrl(gtk.TextView):
 		self._parser = LineParser()
 
 		# General config/setup
-		if Config.get('output/gtk24wrapping'):
+		if Config.getBool('output/gtk24wrapping'):
 			self.set_wrap_mode(GTK_WRAP_WORD_CHAR)
 		else:
 			self.set_wrap_mode(gtk.WRAP_WORD)
@@ -32,17 +32,17 @@ class GTKOutputCtrl(gtk.TextView):
 		states = [gtk.STATE_NORMAL, gtk.STATE_ACTIVE, gtk.STATE_PRELIGHT, gtk.STATE_INSENSITIVE]
 		for state in states:
 			for func in [self.modify_base, self.modify_bg]:
-				func(state, gtk.gdk.color_parse(Config.get('output/bg/default')))
+				func(state, gtk.gdk.color_parse(Config.getStr('output/bg/default')))
 								 
 		self.modify_text(gtk.STATE_NORMAL, \
-				gtk.gdk.color_parse(Config.get('output/fg/default')))
-		self.modify_font(pango.FontDescription(Config.get('output/font')))
+				gtk.gdk.color_parse(Config.getStr('output/fg/default')))
+		self.modify_font(pango.FontDescription(Config.getStr('output/font')))
 		self.set_editable(False)
 	
 		# Tags and such
 		self._buffer = self.get_buffer()
 		self._colorTags = {}
-		self._forceBG = self._buffer.create_tag(background=Config.get('output/bg/default'))
+		self._forceBG = self._buffer.create_tag(background=Config.getStr('output/bg/default'))
 		self._boldTag = self._buffer.create_tag(weight=pango.WEIGHT_BOLD)
 		self._italicTag = self._buffer.create_tag(style=pango.STYLE_ITALIC)
 		self._underlineTag = \
@@ -50,7 +50,7 @@ class GTKOutputCtrl(gtk.TextView):
 		self._strikethroughTag = self._buffer.create_tag(strikethrough=True)
 		self._urlTag = \
 			self._buffer.create_tag(underline=pango.UNDERLINE_SINGLE, \
-									foreground=Config.get('output/urls'), weight=pango.WEIGHT_BOLD)
+									foreground=Config.getStr('output/urls'), weight=pango.WEIGHT_BOLD)
 
 		self._barCursor = gtk.gdk.Cursor(gtk.gdk.XTERM)
 		self._arrowCursor = gtk.gdk.Cursor(gtk.gdk.HAND2)
@@ -115,9 +115,9 @@ class GTKOutputCtrl(gtk.TextView):
 	def _colorObjectToHTML(self, color):
 		"""Converts from a color object specified in a TextChunk to an HTML color code"""
 		if color is None:
-			return Config.get('output/fg/default')
+			return Config.getStr('output/fg/default')
 		elif isinstance(color, AnsiColor):
-			return Config.get('output/fg/%d' % color.code)
+			return Config.getStr('output/fg/%d' % color.code)
 		else: # TA2Color
 			assert isinstance(color, TA2Color)
 			return color.code
