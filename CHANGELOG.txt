@@ -9,7 +9,8 @@ Stuff that's changed...
   Python pickling
 * Config is no longer global
 * Fixed some GTK warnings
-* Reorganized client to get away from ugly inheritance crap.
+* Hugely reorganized client to get away from ugly inheritance crap.
+* New logo.
 
 0.04 "Mexican Magic Realism"
 * Browser launching now uses standard Python webbrowser.py module.

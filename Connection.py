@@ -79,8 +79,10 @@ class Connection(ClientFactory):
 		return self._proto
 			
 	def _enterState(self, state, reason=None):
+		oldState = self._state
 		self._state = state
-		self.stateChanged.notify(state, reason)
+		if state != oldState:
+			self.stateChanged.notify(state, reason)
 		
 	def _dataReceived(self, data):
 		self.dataReceived.notify(data)

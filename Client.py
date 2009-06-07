@@ -34,6 +34,7 @@ class Client:
 		#self.events = EventBus.EventBus()
 		self.conn = Connection.Connection()
 		self.conn.dataReceived.register(self._onDataReceived)
+		self.conn.stateChanged.register(self._onConnStateChanged)
 		# TODO: Remove 'Config.currentConfig' entirely and have it only exist under Client
 		self._configPath = \
 			os.path.abspath(os.path.join(os.path.dirname(__file__),'config.xml'))
@@ -91,7 +92,6 @@ class Client:
 			parameters = match.group(3)
 			if self._commands.has_key(commandName):
 				command = self._commands[commandName]
-				print "parameters="+repr(parameters)
 				if parameters is None:
 					parameters = ''
 				command.func(parameters)
@@ -108,6 +108,15 @@ class Client:
 		
 	def _onDataReceived(self, data):
 		self.ui.onReceiveText(data)
+		
+	def _onConnStateChanged(self, state, reason):
+		if state == Connection.STATE_CONNECTING:
+			self.echo('Connecting...')
+		elif state == Connection.STATE_CONNECTED:
+			self.echo('Connected!')
+		elif state == Connection.STATE_DISCONNECTED:
+			self.echo('Connection closed')
+		self.ui.stateChanged(state)
 			
 	def _cmdConnect(self, params):
 		host = self.cfg.getStr('server/host', 'tiberia.homeip.net')
@@ -169,3 +178,5 @@ class Client:
 			if len(c.names) > 1:
 				s = tabs+"Aliases: "+EV_BOLD + ", ".join(["/"+x for x in c.names[1:]])+EV_NORMAL
 				self.echo(s)
+				
+	

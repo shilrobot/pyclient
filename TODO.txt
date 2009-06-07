@@ -3,7 +3,7 @@ TODO list for PyClient
 HIGH PRIORITY
 =============
 * Look into shit about unicode token parsing. Where is it used, is our implementation correct, etc.
-  -- Potential that EV_NORMAL + hex digits = hilarious broken
+  -- Potential that EV_NORMAL + hex digits = silently broken
 * Configuration dialog
 * Auto-login
 * Auto-TA2 mode
