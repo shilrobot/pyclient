@@ -2,12 +2,6 @@ import gtk, pango, gobject
 from ta2 import *
 import re
 
-# Until PyGTK adds gtk.WRAP_WORD_CHAR, we do it ourselves :)
-# This is somewhat of a hack *cough*
-# This isn't always used though, see the output/gtk24wrapping setting
-GTK_WRAP_WORD_CHAR = 3
-
-
 # TODO: Clean some of this up to the extent possible...
 class GTKOutputCtrl(gtk.TextView):
 	"""
@@ -18,17 +12,8 @@ class GTKOutputCtrl(gtk.TextView):
 		gtk.TextView.__init__(self, buffer=None)
 		self.cfg = cfg
 		self._parser = LineParser()
-
-		# General config/setup
-		if self.cfg.getBool('output/gtk24wrapping'):
-			self.set_wrap_mode(GTK_WRAP_WORD_CHAR)
-		else:
-			self.set_wrap_mode(gtk.WRAP_WORD)
-			
-		#self.modify_base(gtk.STATE_NORMAL, \
-		#						 gtk.gdk.color_parse(self.cfg.get('output/bg/default')))
+		self.set_wrap_mode(gtk.WRAP_WORD_CHAR)
 		
-		# Okay, you found it, twee :)
 		states = [gtk.STATE_NORMAL, gtk.STATE_ACTIVE, gtk.STATE_PRELIGHT, gtk.STATE_INSENSITIVE]
 		for state in states:
 			for func in [self.modify_base, self.modify_bg]:
@@ -190,13 +175,15 @@ class GTKOutputCtrl(gtk.TextView):
 				break
 			else:
 				textChunks = 0
+				xmlChunks = 0
 				for chunk in line:
 					if isinstance(chunk, XmlChunk):
 						print "Got some XML:", chunk.xml
+						xmlChunks += 1
 					else:
 						self._insertChunk(chunk)
 						textChunks += 1
-				if textChunks > 0:
+				if textChunks > 0 or xmlChunks == 0:
 					self._insertNewline()
 		mark = self._buffer.create_mark(None, self._buffer.get_end_iter())
 		self.scroll_to_mark(mark, 0)

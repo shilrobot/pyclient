@@ -11,6 +11,7 @@ import twisted.copyright
 import sys
 import Version
 import Log
+import difflib
 
 class Command:
 	def __init__(self, names, func, params=None, doc=None):
@@ -25,7 +26,46 @@ class Command:
 		self.func = func
 		self.params = params
 		self.doc = doc
+		
+# Levenshtein edit distance implementation by bbands from comp.lang.python
+# see http://groups.google.com/group/comp.lang.python/browse_frm/thread/43f3ef0bf88f40d2
+def distance(a,b):
+    c = {}
+    n = len(a); m = len(b)
 
+    for i in range(0,n+1):
+        c[i,0] = i
+    for j in range(0,m+1):
+        c[0,j] = j
+
+    for i in range(1,n+1):
+        for j in range(1,m+1):
+            x = c[i-1,j]+1
+            y = c[i,j-1]+1
+            if a[i-1] == b[j-1]:
+                z = c[i-1,j-1]
+            else:
+                z = c[i-1,j-1]+1
+            c[i,j] = min(x,y,z)
+    return c[n,m] 
+    
+def relative(a, b):
+    """
+    Computes a relative distance between two strings. Its in the range
+    (0-1] where 1 means total equality.
+    @type a: string
+    @param a: arg one
+    @type b: string
+    @param b: arg two
+    @rtype: float
+    @return: the distance
+    """
+    d = distance(a,b)
+    longer = float(max((len(a), len(b))))
+    shorter = float(min((len(a), len(b))))    
+    r = ((longer - d) / longer) * (shorter / longer)
+    return r 
+    
 COMMAND_REGEX = re.compile(r'^/([a-zA-Z0-9_-]+)([ \t](.*))?$')
 
 class Client:
@@ -66,8 +106,8 @@ class Client:
 		self.ui = GTKClient(self)
 		
 		self.echo(EV_GREEN+EV_BOLD+Version.FULLNAME)
-		self.echo(EV_NORMAL+EV_CYAN+'See /help for a list of commands')
-		self.echo(EV_NORMAL)
+		self.echo(EV_CYAN+'See /help for a list of commands')
+		self.echo()
 		
 		from twisted.internet import reactor
 		reactor.run()
@@ -80,7 +120,7 @@ class Client:
 	def echo(self, line=None):
 		if line is None:
 			line = ''
-		self._displayText(ANSI_NORMAL+line+'\r\n')
+		self._displayText(ANSI_NORMAL+line+ANSI_NORMAL+'\r\n')
 		
 	def send(self, line):
 		# TODO: Send through output filter stack...
@@ -100,7 +140,7 @@ class Client:
 					parameters = ''
 				command.func(parameters)
 			else:
-				self.echo('Unknown command: /'+match.group(1))
+				self.echo('Unknown command: /%s %s' % (match.group(1), self._suggestCommands(match.group(1))))
 		else:
 			# TODO
 			self.send(line)
@@ -119,16 +159,35 @@ class Client:
 		
 	def _onConnStateChanged(self, state, reason):
 		if state == Connection.STATE_CONNECTING:
-			self.echo('Connecting...')
+			self.echo('Connecting to %s:%d...' % ( self.conn.getHost(), self.conn.getPort()))
 		elif state == Connection.STATE_CONNECTED:
 			self.echo('Connected!')
+			self.cfg.setStr('server/host', self.conn.getHost())
+			self.cfg.setInt('server/port', self.conn.getPort())
 		elif state == Connection.STATE_DISCONNECTED:
-			self.echo('Connection closed')
+			if reason == Connection.REASON_CONNECTION_FAILED:
+				self.echo('Connection failed')
+			else:
+				self.echo('Connection closed')
 		self.ui.stateChanged(state)
-			
+				
+		
 	def _cmdConnect(self, params):
-		host = self.cfg.getStr('server/host', 'tiberia.homeip.net')
-		port = self.cfg.getInt('server/port', '1337')
+		if len(params.strip()) > 0:
+			match = re.match("^\s*([^:\s]+)\s*:?\s*([0-9]+)?\s*$", params)
+			if match is not None:
+				host = match.group(1)
+				port = match.group(2)
+				if port is None:
+					port = 23 # telnet
+				else:
+					port = int(port)
+			else:
+				self.echo("Malformed host/port spec: %s" % params)
+				return
+		else:
+			host = self.cfg.getStr('server/host', 'tiberia.homeip.net')
+			port = self.cfg.getInt('server/port', '1337')
 		self.conn.connect(host,port)
 		
 	def _cmdClose(self, params):
@@ -149,9 +208,9 @@ class Client:
 		self.echo("\x1b[0m\x1b[36m<-36> Cyan         \x1b[1m<-36><-1> Bold Cyan")
 		self.echo("\x1b[0m\x1b[37m<-37> White        \x1b[1m<-37><-1> Bold White")
 		self.echo("Extended TA2 codes:")
-		self.echo(EV_B+"<-b>Bold<-/b>      "+EV_NORMAL+EV_S+"<-s>Strikethrough<-/s>"+EV_NORMAL)
-		self.echo(EV_I+"<-i>Italic<-/i>    "+EV_NORMAL+EV_SETCOLOR+"ff8800<-cFF8800>Color</-c>"+EV_NORMAL)
-		self.echo(EV_U+"<-u>Underline<-/u>"+EV_NORMAL)
+		self.echo(EV_B+"<-b>Bold<-/b>      "+EV_NORMAL+EV_S+"<-s>Strikethrough<-/s>")
+		self.echo(EV_I+"<-i>Italic<-/i>    "+EV_NORMAL+EV_SETCOLOR+"ff8800<-cFF8800>Color</-c>")
+		self.echo(EV_U+"<-u>Underline<-/u>")
 		
 	def _cmdMe(self, parms):
 		self.send('.action '+parms)
@@ -169,22 +228,49 @@ class Client:
 			 ' / PyGTK '+ '.'.join([str(x) for x in gtk.pygtk_version]) + \
 			 ' / Twisted '+twisted.copyright.version)
 			 
+	def _showCommandHelp(self, c):
+		tabs = "    "
+		self.echo(EV_BOLD+EV_WHITE+"/"+c.names[0]+" "+c.params)
+		self.echo(tabs+c.doc)
+		if len(c.names) > 1:
+			s = tabs+"Aliases: "+EV_BOLD + ", ".join(["/"+x for x in c.names[1:]])
+			self.echo(s)
+			
+	def _suggestCommands(self, enteredName):
+		enteredName = enteredName.lower()
+		closest = difflib.get_close_matches(enteredName, self._commands.keys(), 4, .7)
+		if len(closest) == 0:
+			best = None
+			bestLen = -1
+			for c in self._commands.keys():
+				if c.startswith(enteredName):
+					if best is None or len(c) < bestLen:
+						best = c
+						bestLen = len(c)
+			if best is not None:
+				closest = [best]
+		if len(closest) == 0:
+			return ''
+		elif len(closest) == 1:
+			return "(Did you mean /%s?)" % closest[0]
+		else:
+			return "(Did you mean %s or /%s?)" % (', '.join(["/"+x for x in closest[:-1]]), closest[-1])
+						 
 	def _cmdHelp(self, parms=None):
-		#self.echo("PyClient commands are executed by preceding their name with a forward slash. To send a literal forward slash at the beginning of a line, type two forward slashes.")
-		#self.echo("PyClient supports the following commands:")
-		self.echo()
-		cmds = []
-		for c in self._commands.values():
-			if not c in cmds:
-				cmds.append(c)
-		#cmds = self._commands.items()
-		cmds.sort(lambda a,b:cmp(a.names[0], b.names[0]))
-		for c in cmds:
-			tabs = "    "
-			self.echo(EV_BOLD+EV_WHITE+"/"+c.names[0]+" "+c.params+EV_NORMAL)
-			self.echo(tabs+c.doc)
-			if len(c.names) > 1:
-				s = tabs+"Aliases: "+EV_BOLD + ", ".join(["/"+x for x in c.names[1:]])+EV_NORMAL
-				self.echo(s)
+		args = parms.strip().split()
+		if len(args) > 0:
+			cmdname = args[0].lower()
+			if cmdname in self._commands:
+				self._showCommandHelp(self._commands[cmdname])
+			else:
+				self.echo("Unknown command: /%s %s" % (args[0], self._suggestCommands(args[0])))
+		else:
+			self.echo()
+			cmds = []
+			for c in self._commands.values():
+				if not c in cmds:
+					cmds.append(c)
+			cmds.sort(lambda a,b:cmp(a.names[0], b.names[0]))
+			for c in cmds:
+				self._showCommandHelp(c)
 				
-	

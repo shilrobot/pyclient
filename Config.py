@@ -21,7 +21,6 @@ class Config:
 			'output/fg/7': '#FFFFFF',
 			'output/bg/default': '#000000',
 			'output/urls': '#0000FF',
-			'output/gtk24wrapping': True,
 			'server/host': 'tiberia.homeip.net',
 			'server/port': 1337,
 			'ui/sizeX': 700,

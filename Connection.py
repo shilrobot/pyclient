@@ -35,6 +35,7 @@ class Connection(ClientFactory):
 	def disconnect(self):
 		"""Disconnect from the current server if connected."""
 		if not self.isDisconnected():
+			# TODO: make this not warn if you cancel during a connection
 			self._proto.transport.loseConnection()
 			self._enterDisconnectedState()
 		
