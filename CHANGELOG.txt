@@ -7,6 +7,9 @@ Stuff that's changed...
    of the directory extracted from a tarball anyway)
 * Config information stored in XML format which is cleaner than
   Python pickling
+* Config is no longer global
+* Fixed some GTK warnings
+* Reorganized client to get away from ugly inheritance crap.
 
 0.04 "Mexican Magic Realism"
 * Browser launching now uses standard Python webbrowser.py module.

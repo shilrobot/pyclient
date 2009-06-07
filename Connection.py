@@ -46,6 +46,15 @@ class Connection(ClientFactory):
 		
 	def getState(self):
 		return self._state
+		
+	def isDisconnected(self):
+		return self._state == STATE_DISCONNECTED
+		
+	def isConnecting(self):
+		return self._state == STATE_CONNECTING
+		
+	def isConnected(self):
+		return self._state == STATE_CONNECTED
 			
 	def sendRaw(self, data):
 		"""Send byte data to the server."""

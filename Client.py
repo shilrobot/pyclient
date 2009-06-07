@@ -2,7 +2,7 @@ import os
 import Config
 import Connection
 import GTKClient
-import Commands
+#import Commands
 import EventBus
 import re
 from ta2 import *
@@ -37,9 +37,9 @@ class Client:
 		# TODO: Remove 'Config.currentConfig' entirely and have it only exist under Client
 		self._configPath = \
 			os.path.abspath(os.path.join(os.path.dirname(__file__),'config.xml'))
-		self.cfg = Config.currentConfig
+		self.cfg = Config.Config()
 		if os.path.exists(self._configPath):
-			self.cfg.loadXML(self._configPath)
+			self.cfg.load(self._configPath)
 		self.addCommand(["connect","open"], self._cmdConnect, '[host [port]]', 'Connects to server. host:port format is also allowed.')
 		self.addCommand(["disconnect","close"], self._cmdClose, '', 'Disconnects from server.')
 		self.addCommand("echo", self._cmdEcho, '<text>', 'Displays a line of text in the output window.')
@@ -70,7 +70,7 @@ class Client:
 	def shutdown(self):
 		"""Closes down the client."""
 		self.conn.disconnect()
-		self.cfg.saveXML(self._configPath)
+		self.cfg.save(self._configPath)
 		
 	def echo(self, line=None):
 		if line is None:

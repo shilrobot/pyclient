@@ -175,6 +175,7 @@ class LineParser(object):
 		# Tokenize now...
 		while 1:
 			tok = self._tokenizer.getNextToken()
+			#print tok.__class__, self._incompleteLine
 			if isinstance(tok, WaitToken):
 				break
 			elif isinstance(tok, TextToken):
@@ -209,9 +210,9 @@ class LineParser(object):
 				# TODO: This will be really slow if someone were to post a line
 				#		in Japanese, for example -- every single character
 				#		would result in a discrete text chunk!
-				if flags & ATT_UNICODE:
-					text = chr(tok.getUnicode())
-					self._incompleteLine.append(TextChunk(text, self._style))
+				#if flags & ATT_UNICODE:
+				#	text = chr(tok.getUnicode())
+				#	#self._incompleteLine.append(TextChunk(text, self._style))
 			elif isinstance(tok, NewlineToken):
 				self._completeLines.append(self._incompleteLine)
 				self._incompleteLine = []

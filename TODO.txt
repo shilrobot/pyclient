@@ -2,6 +2,8 @@ TODO list for PyClient
 
 HIGH PRIORITY
 =============
+* Look into shit about unicode token parsing. Where is it used, is our implementation correct, etc.
+  -- Potential that EV_NORMAL + hex digits = hilarious broken
 * Configuration dialog
 * Auto-login
 * Auto-TA2 mode
@@ -10,6 +12,7 @@ HIGH PRIORITY
 * Resizing bugs: slow making-it-smaller, not being able to resize it to smaller
 * Sensible plugin architecture
   (more for me than for users -- makes it easy to implement this stuff)
+* Make web browser clicking work on BSD(???)
 
 MEDIUM PRIORITY
 ===============

@@ -1,14 +1,14 @@
 """The main client window code"""
 
 import gtk,pango
-from TwistedClient import *
+#from TwistedClient import *
 from GTKOutputCtrl import GTKOutputCtrl
 import Version
-import Config
+#import Config
 from Connection import *
 
 # TODO: Make a class for the *window itself*
-	
+
 class GTKClient:
 	"""Controls the main client window"""
 	
@@ -16,6 +16,7 @@ class GTKClient:
 	def __init__(self, client):
 		#TwistedClient.__init__(self)
 		self._client = client
+		self.cfg = client.cfg
 		
 		# Set up the main window frame
 		self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
@@ -28,13 +29,13 @@ class GTKClient:
 		self.window.set_position(gtk.WIN_POS_CENTER)
 
 		# Create the output window
-		self.output = GTKOutputCtrl()
+		self.output = GTKOutputCtrl(self.cfg)
 		self.output.show()
 		
 		# Create the scrollbar for the output window
 		self.scroll = gtk.ScrolledWindow()
 		hpolicy = gtk.POLICY_AUTOMATIC
-		if Config.getBool('output/gtk24wrapping'):
+		if self.cfg.getBool('output/gtk24wrapping'):
 			hpolicy = gtk.POLICY_NEVER
 		self.scroll.set_policy(hpolicy, gtk.POLICY_ALWAYS)
 		# TODO: Remove the border between the scrollbar & the control!
@@ -45,7 +46,7 @@ class GTKClient:
 
 		# Create the input box
 		self.input = gtk.TextView()
-		self.input.modify_font(pango.FontDescription(Config.getStr('input/font')))
+		self.input.modify_font(pango.FontDescription(self.cfg.getStr('input/font')))
 		self.input.set_size_request(25,25)
 		self.input.connect('key-press-event', self.key_press_event)
 		self.input.show()
@@ -141,25 +142,25 @@ class GTKClient:
 
 	def restoreWindowPosition(self):
 		"""Restores the old window configuration from the config file."""
-		if Config.hasKey('ui/posX') and Config.hasKey('ui/posY'):
-			self.window.move(Config.getInt('ui/posX'),
-							 Config.getInt('ui/posY'))
-		if Config.hasKey('ui/sizeX') and Config.hasKey('ui/sizeY'):
-			self.window.resize(Config.getInt('ui/sizeX'),
-							 Config.getInt('ui/sizeY'))
-		if Config.hasKey('ui/panePos'):
-			self.panes.set_position(Config.getInt('ui/panePos'))
+		if self.cfg.hasKey('ui/posX') and self.cfg.hasKey('ui/posY'):
+			self.window.move(self.cfg.getInt('ui/posX'),
+							 self.cfg.getInt('ui/posY'))
+		if self.cfg.hasKey('ui/sizeX') and self.cfg.hasKey('ui/sizeY'):
+			self.window.resize(self.cfg.getInt('ui/sizeX'),
+							 self.cfg.getInt('ui/sizeY'))
+		if self.cfg.hasKey('ui/panePos'):
+			self.panes.set_position(self.cfg.getInt('ui/panePos'))
 	
 	def saveWindowSettings(self):
-		"""Saves the window position to a config file."""
+		"""Saves the window position to a self.cfg file."""
 		# TODO: This doesn't get called when we Ctrl+C pyclient
 		# 		from a terminal
 		# TODO: Save maximization state
-		Config.setInt('ui/posX', self.window.get_position()[0])
-		Config.setInt('ui/posY', self.window.get_position()[1])
-		Config.setInt('ui/sizeX', self.window.get_size()[0])
-		Config.setInt('ui/sizeY', self.window.get_size()[1])
-		Config.setInt('ui/panePos', self.panes.get_position())
+		self.cfg.setInt('ui/posX', self.window.get_position()[0])
+		self.cfg.setInt('ui/posY', self.window.get_position()[1])
+		self.cfg.setInt('ui/sizeX', self.window.get_size()[0])
+		self.cfg.setInt('ui/sizeY', self.window.get_size()[1])
+		self.cfg.setInt('ui/panePos', self.panes.get_position())
 
 	def createActions(self):
 		ui = '''\

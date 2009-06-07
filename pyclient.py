@@ -6,9 +6,7 @@ try:
 	psyco.full()
 	print '* Accelerating with psyco!'
 except:
-	print "* Couldn't import psyco, continuing unaccelerated without it."
-	print "  If you wish to use psyco to accelerate Python programs, visit"
-	print "  the Psyco website: http://psyco.sf.net"
+	pass
 
 # Install GTK reactor before we do any Twisted based stuff
 from twisted.internet import gtk2reactor

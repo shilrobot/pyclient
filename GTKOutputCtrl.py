@@ -1,6 +1,5 @@
 import gtk, pango, gobject
 from ta2 import *
-import Config
 import re
 
 # Until PyGTK adds gtk.WRAP_WORD_CHAR, we do it ourselves :)
@@ -15,34 +14,35 @@ class GTKOutputCtrl(gtk.TextView):
 	Control that displays the colorized/formatted output from TA.
 	"""
 
-	def __init__(self):
+	def __init__(self, cfg):
 		gtk.TextView.__init__(self, buffer=None)
+		self.cfg = cfg
 		self._parser = LineParser()
 
 		# General config/setup
-		if Config.getBool('output/gtk24wrapping'):
+		if self.cfg.getBool('output/gtk24wrapping'):
 			self.set_wrap_mode(GTK_WRAP_WORD_CHAR)
 		else:
 			self.set_wrap_mode(gtk.WRAP_WORD)
 			
 		#self.modify_base(gtk.STATE_NORMAL, \
-		#						 gtk.gdk.color_parse(Config.get('output/bg/default')))
+		#						 gtk.gdk.color_parse(self.cfg.get('output/bg/default')))
 		
 		# Okay, you found it, twee :)
 		states = [gtk.STATE_NORMAL, gtk.STATE_ACTIVE, gtk.STATE_PRELIGHT, gtk.STATE_INSENSITIVE]
 		for state in states:
 			for func in [self.modify_base, self.modify_bg]:
-				func(state, gtk.gdk.color_parse(Config.getStr('output/bg/default')))
+				func(state, gtk.gdk.color_parse(self.cfg.getStr('output/bg/default')))
 								 
 		self.modify_text(gtk.STATE_NORMAL, \
-				gtk.gdk.color_parse(Config.getStr('output/fg/default')))
-		self.modify_font(pango.FontDescription(Config.getStr('output/font')))
+				gtk.gdk.color_parse(self.cfg.getStr('output/fg/default')))
+		self.modify_font(pango.FontDescription(self.cfg.getStr('output/font')))
 		self.set_editable(False)
 	
 		# Tags and such
 		self._buffer = self.get_buffer()
 		self._colorTags = {}
-		self._forceBG = self._buffer.create_tag(background=Config.getStr('output/bg/default'))
+		self._forceBG = self._buffer.create_tag(background=self.cfg.getStr('output/bg/default'))
 		self._boldTag = self._buffer.create_tag(weight=pango.WEIGHT_BOLD)
 		self._italicTag = self._buffer.create_tag(style=pango.STYLE_ITALIC)
 		self._underlineTag = \
@@ -50,7 +50,7 @@ class GTKOutputCtrl(gtk.TextView):
 		self._strikethroughTag = self._buffer.create_tag(strikethrough=True)
 		self._urlTag = \
 			self._buffer.create_tag(underline=pango.UNDERLINE_SINGLE, \
-									foreground=Config.getStr('output/urls'), weight=pango.WEIGHT_BOLD)
+									foreground=self.cfg.getStr('output/urls'), weight=pango.WEIGHT_BOLD)
 
 		self._barCursor = gtk.gdk.Cursor(gtk.gdk.XTERM)
 		self._arrowCursor = gtk.gdk.Cursor(gtk.gdk.HAND2)
@@ -71,7 +71,7 @@ class GTKOutputCtrl(gtk.TextView):
 	def _motionNotify(self, widget, event):
 		if event.is_hint:
 			self.get_pointer()
-		x,y = self.window_to_buffer_coords(gtk.TEXT_WINDOW_WIDGET, event.x, event.y)
+		x,y = self.window_to_buffer_coords(gtk.TEXT_WINDOW_WIDGET, int(event.x), int(event.y))
 		iter = self.get_iter_at_location(x,y)
 		isUrl = False
 		url = ''
@@ -115,9 +115,9 @@ class GTKOutputCtrl(gtk.TextView):
 	def _colorObjectToHTML(self, color):
 		"""Converts from a color object specified in a TextChunk to an HTML color code"""
 		if color is None:
-			return Config.getStr('output/fg/default')
+			return self.cfg.getStr('output/fg/default')
 		elif isinstance(color, AnsiColor):
-			return Config.getStr('output/fg/%d' % color.code)
+			return self.cfg.getStr('output/fg/%d' % color.code)
 		else: # TA2Color
 			assert isinstance(color, TA2Color)
 			return color.code
@@ -147,7 +147,8 @@ class GTKOutputCtrl(gtk.TextView):
 			tags.append(self._underlineTag)
 		if style.strikethrough:
 			tags.append(self._strikethroughTag)
-		self._buffer.insert_with_tags(self._buffer.get_end_iter(), text, *tags)
+		#print repr(text)
+		self._buffer.insert_with_tags(self._buffer.get_end_iter(),text, *tags)
 		end = self._buffer.get_end_iter()
 		
 		# TODO: Cleaner way of doing this (that will withstand tags in the middle, etc.)
@@ -180,6 +181,7 @@ class GTKOutputCtrl(gtk.TextView):
 		"""Parses and writes text to the output control, and
 		scrolls it into view
 		"""
+		#print "write(%s)"% repr(text)
 		# TODO: Talking to LineParser shouldn't be done here, I don't think.
 		self._parser.queueData(text)
 		while 1:

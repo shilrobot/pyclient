@@ -1,13 +1,8 @@
-"""Global (ick) configuration system for PyClient."""
+"""Configuration system for PyClient."""
 
-# TODO: Put some version info stuff in here
-# TODO: Get/set colors (#FFFFFF)
-# TODO: Get/set size (2-tuple)
-
-import pickle
 import xml.etree.ElementTree as ET
 	
-class ConfigSettings:
+class Config:
 	"""Holds the actual config values. Really a glorified dictionary."""
 	
 	def __init__(self):
@@ -58,7 +53,7 @@ class ConfigSettings:
 			return str(self._config[name])
 		except:
 			return default
-			
+		
 	def setBool(self, name, val):
 		self._config[name] = ['False','True'][val]
 		
@@ -68,7 +63,7 @@ class ConfigSettings:
 	def setInt(self, name, val):
 		self._config[name] = val
 
-	def loadXML(self, filename):
+	def load(self, filename):
 		tree = ET.parse(filename)
 		root = tree.getroot()
 		if root.tag != 'pyclient-config':
@@ -78,7 +73,7 @@ class ConfigSettings:
 			if keytag.attrib.has_key('name') and keytag.attrib.has_key('value'):
 				self._config[keytag.attrib['name']] = keytag.attrib['value']
 				
-	def saveXML(self, file):
+	def save(self, file):
 		keys = self._config.keys()
 		keys.sort()
 		root = ET.Element('pyclient-config')
@@ -95,15 +90,3 @@ class ConfigSettings:
 		"""Resets to defaults."""
 		self._config = self._defaults.copy()
 		
-# Global config 'singleton'
-# TODO: Move away from this
-currentConfig = ConfigSettings()
-
-# Quick access to config settings
-hasKey = currentConfig.hasKey
-getBool = currentConfig.getBool
-getInt = currentConfig.getInt
-getStr = currentConfig.getStr
-setBool = currentConfig.setBool
-setInt = currentConfig.setInt
-setStr = currentConfig.setStr
