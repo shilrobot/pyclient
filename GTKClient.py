@@ -5,15 +5,17 @@ from TwistedClient import *
 from GTKOutputCtrl import GTKOutputCtrl
 import Version
 import Config
+from Connection import *
 
 # TODO: Make a class for the *window itself*
 	
-class GTKClient(TwistedClient):
+class GTKClient:
 	"""Controls the main client window"""
 	
 	# OH GOD THIS FUNCTION IS TOO LONG
 	def __init__(self, client):
-		TwistedClient.__init__(self)
+		#TwistedClient.__init__(self)
+		self._client = client
 		
 		# Set up the main window frame
 		self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
@@ -121,21 +123,21 @@ class GTKClient(TwistedClient):
 		self.input.grab_focus()
 
 		# Register commandx0r
-		self.registerCommand('clear', self.clear, None,
+		self._client.addCommand('clear', self.clear, None,
 								'Clears the screen.')
-		self.registerCommand(['quit', 'exit'], self.quit, None,
+		self._client.addCommand(['quit', 'exit'], self.quit, None,
 								'Quits the client.')
-		self.registerCommand('testlogin', self.testLogin, None, 'Tests login dialog')
+		#self._client.addCommand('testlogin', self.testLogin, None, 'Tests login dialog')
 
 		self._client = client
-		self._client.register('conn.dataReceived', self._onDataReceived)
-		self._client.register('client.echo', self._onEcho)
+		#self._client.events.register('conn.dataReceived', self._onDataReceived)
+		#self._client.events.register('client.echo', self._onEcho)
 		
 		#self.updateUI()
-		self.stateChanged(self.state)
+		self.stateChanged(self._client.conn.getState())
 
 		# Display some basic info when we start up
-		self.startupBanner()
+		#self.startupBanner()
 
 	def restoreWindowPosition(self):
 		"""Restores the old window configuration from the config file."""
@@ -223,11 +225,11 @@ class GTKClient(TwistedClient):
 		self.actions.get_action(name).connect('activate', cb)
 		
 	def connectActions(self):
-		self.linkAction('Connect', self.connect)
-		self.linkAction('Disconnect', self.disconnect)
+		self.linkAction('Connect', lambda e: self._client.execute("/connect"))
+		self.linkAction('Disconnect', lambda e: self._client.execute("/close"))
 		self.linkAction('Clear', self.clear)
 		self.linkAction('Close', self.quit)
-		self.linkAction('ShowCommands', self.help)
+		self.linkAction('ShowCommands', lambda e: self._client.execute("/help"))
 
 	def clear(self, args=''):
 		self.output.clear()
@@ -300,8 +302,8 @@ class GTKClient(TwistedClient):
 		self.statusbar.push(0, "PyClient %s / %s" % (Version.VERSION, statename))
 
 
-	def _onEcho(self, line):
-		self.onReceiveText(line+"\r\n")
+	#def _onEcho(self, line):
+	#	self.onReceiveText(line+"\r\n")
 		
-	def _onDataReceived(self, data):
-		self.onReceiveText(text)
+	#def _onDataReceived(self, data):
+	#	self.onReceiveText(text)

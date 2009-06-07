@@ -1,5 +1,6 @@
 from twisted.internet import reactor
 from twisted.internet.protocol import Protocol, ClientFactory
+from Event import Event
 
 # Possible client states
 STATE_DISCONNECTED = "STATE_DISCONNECTED"
@@ -14,12 +15,13 @@ REASON_CONNECTION_FAILED = "REASON_CONNECTION_FAILED"
 class Connection(ClientFactory):
 	"""The component that handles managing the connection to the TA server."""
 	
-	def __init__(self, client):
-		self._client = client
+	def __init__(self):
 		self._state = STATE_DISCONNECTED
 		self._proto = None
 		self._host = None
 		self._port = None
+		self.stateChanged = Event()
+		self.dataReceived = Event()
 		
 	def connect(self, host, port):
 		"""Start connecting to a given host/port, terminating current connection if necessary."""
@@ -33,7 +35,7 @@ class Connection(ClientFactory):
 	def disconnect(self):
 		"""Disconnect from the current server if connected."""
 		if not self.isDisconnected():
-			self._proto.loseConnection()
+			self._proto.transport.loseConnection()
 			self._enterDisconnectedState()
 		
 	def getHost(self):
@@ -44,15 +46,6 @@ class Connection(ClientFactory):
 		
 	def getState(self):
 		return self._state
-		
-	def isDisconnected(self):
-		return self._state == STATE_DISCONNECTED
-		
-	def isConnecting(self):
-		return self._state == STATE_CONNECTING
-		
-	def isConnected(self):
-		return self._state == STATE_CONNECTED
 			
 	def sendRaw(self, data):
 		"""Send byte data to the server."""
@@ -74,15 +67,14 @@ class Connection(ClientFactory):
 	def buildProtocol(self, addr):
 		self._proto = TwistedConnection(self)
 		self._enterState(STATE_CONNECTED)
-		return self.conn
+		return self._proto
 			
 	def _enterState(self, state, reason=None):
 		self._state = state
-		self._client.notify('conn.stateChanged', state, reason)
-		# TODO: Other events for specific stuff like connect/disconnect...?
+		self.stateChanged.notify(state, reason)
 		
 	def _dataReceived(self, data):
-		self._client.notify('conn.dataReceived', data)	
+		self.dataReceived.notify(data)
 
 class TwistedConnection(Protocol):
 	def __init__(self, conn):
@@ -91,7 +83,7 @@ class TwistedConnection(Protocol):
 	def dataReceived(self, data):
 		self._conn._dataReceived(data)
 
-__all__ = ['Client',
+__all__ = ['Connection',
 			'STATE_DISCONNECTED',
 			'STATE_CONNECTING',
 			'STATE_CONNECTED',

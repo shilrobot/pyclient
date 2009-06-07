@@ -8,7 +8,7 @@ try:
 except:
 	print "* Couldn't import psyco, continuing unaccelerated without it."
 	print "  If you wish to use psyco to accelerate Python programs, visit"
-	print "  the Psyco website: http://psyco.sourceforge.net"
+	print "  the Psyco website: http://psyco.sf.net"
 
 # Install GTK reactor before we do any Twisted based stuff
 from twisted.internet import gtk2reactor
