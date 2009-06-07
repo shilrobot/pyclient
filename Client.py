@@ -10,6 +10,7 @@ import gtk
 import twisted.copyright
 import sys
 import Version
+import Log
 
 class Command:
 	def __init__(self, names, func, params=None, doc=None):
@@ -35,9 +36,9 @@ class Client:
 		self.conn = Connection.Connection()
 		self.conn.dataReceived.register(self._onDataReceived)
 		self.conn.stateChanged.register(self._onConnStateChanged)
+		self.log = Log.Log(self)
 		# TODO: Remove 'Config.currentConfig' entirely and have it only exist under Client
-		self._configPath = \
-			os.path.abspath(os.path.join(os.path.dirname(__file__),'config.xml'))
+		self._configPath = self.getPath('config.xml')
 		self.cfg = Config.Config()
 		if os.path.exists(self._configPath):
 			self.cfg.load(self._configPath)
@@ -52,6 +53,9 @@ class Client:
 		#else:
 		#	print "%s doesn't exist, using default settings" % (self._configPath)		
 		pass	
+		
+	def getPath(self, relpath):
+		return os.path.abspath(os.path.join(os.path.dirname(__file__), relpath))
 				
 	def run(self):
 		"""Performs the main loop of the client."""
@@ -76,7 +80,7 @@ class Client:
 	def echo(self, line=None):
 		if line is None:
 			line = ''
-		self.ui.onReceiveText(ANSI_NORMAL+line+'\r\n')
+		self._displayText(ANSI_NORMAL+line+'\r\n')
 		
 	def send(self, line):
 		# TODO: Send through output filter stack...
@@ -107,7 +111,11 @@ class Client:
 			self._commands[n] = cmd
 		
 	def _onDataReceived(self, data):
-		self.ui.onReceiveText(data)
+		self._displayText(data)
+		
+	def _displayText(self, data):
+		self.log.write(data)
+		self.ui.onReceiveText(data)		
 		
 	def _onConnStateChanged(self, state, reason):
 		if state == Connection.STATE_CONNECTING:

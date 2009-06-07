@@ -7,15 +7,13 @@ HIGH PRIORITY
 * Configuration dialog
 * Auto-login
 * Auto-TA2 mode
-* Logging (HTML)
-* Ignore TA2 keepalive lines/XML newlines
 * Resizing bugs: slow making-it-smaller, not being able to resize it to smaller
 * Sensible plugin architecture
   (more for me than for users -- makes it easy to implement this stuff)
-* Make web browser clicking work on BSD(???)
 
 MEDIUM PRIORITY
 ===============
+* Remove flicker when launching (possibly due to resizing immediately after creation)
 * Tabs for .whisper and .tell
 * /ping
 * /connect ip:port (or /connect ip port)

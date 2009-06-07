@@ -189,12 +189,15 @@ class GTKOutputCtrl(gtk.TextView):
 			if line == None:
 				break
 			else:
+				textChunks = 0
 				for chunk in line:
 					if isinstance(chunk, XmlChunk):
 						print "Got some XML:", chunk.xml
 					else:
 						self._insertChunk(chunk)
-				self._insertNewline()
+						textChunks += 1
+				if textChunks > 0:
+					self._insertNewline()
 		mark = self._buffer.create_mark(None, self._buffer.get_end_iter())
 		self.scroll_to_mark(mark, 0)
 

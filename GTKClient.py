@@ -6,6 +6,7 @@ from GTKOutputCtrl import GTKOutputCtrl
 import Version
 #import Config
 from Connection import *
+import os
 
 # TODO: Make a class for the *window itself*
 
@@ -21,7 +22,7 @@ class GTKClient:
 		# Set up the main window frame
 		self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
 		# TODO: This doesn't work if we don't run from the base dir!
-		self.window.set_icon_from_file('./logo-new.png')
+		self.window.set_icon_from_file(client.getPath('logo-new.png'))
 		#self.window.set_border_width(5)
 		self.window.connect('delete_event', self.delete_event)
 		self.window.connect('destroy', self.destroy)
@@ -291,7 +292,7 @@ class GTKClient:
 	#	reactor.stop()
 		
 	def stateChanged(self, newstate):
-		print '*** stateChanged'
+		#print '*** stateChanged'
 		connect = self.actions.get_action("Connect")
 		connect.set_sensitive(newstate == STATE_DISCONNECTED)
 		disconnect = self.actions.get_action("Disconnect")

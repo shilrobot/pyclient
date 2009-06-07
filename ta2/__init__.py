@@ -2,4 +2,4 @@
 from Constants import *
 from Tokenizer import *
 from LineParser import *
-from TA2Protocol import *
+

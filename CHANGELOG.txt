@@ -11,6 +11,11 @@ Stuff that's changed...
 * Fixed some GTK warnings
 * Hugely reorganized client to get away from ugly inheritance crap.
 * New logo.
+* Since elementtree is built into Python from 2.5+, we now use that directly.
+* Can now be launched with a different working directory w/o failing.
+* No longer creates bogus newlines when we receive XML.
+* Removed ta2.TA2Protocol from distribution as it wasn't being used.
+* Added HTML logging.
 
 0.04 "Mexican Magic Realism"
 * Browser launching now uses standard Python webbrowser.py module.

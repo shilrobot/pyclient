@@ -4,7 +4,6 @@
 try:
 	import psyco
 	psyco.full()
-	print '* Accelerating with psyco!'
 except:
 	pass
 
