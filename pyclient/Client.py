@@ -71,7 +71,8 @@ COMMAND_REGEX = re.compile(r'^/([a-zA-Z0-9_-]+)([ \t](.*))?$')
 
 class Client:
 	
-	def __init__(self):
+	def __init__(self, mainPath):
+		self._mainPath = mainPath
 		self._commands = {}
 		#self.events = EventBus.EventBus()
 		self.conn = Connection.Connection()
@@ -96,7 +97,7 @@ class Client:
 		pass	
 		
 	def getPath(self, relpath):
-		return os.path.abspath(os.path.join(os.path.dirname(__file__), relpath))
+		return os.path.abspath(os.path.join(os.path.dirname(self._mainPath), relpath))
 				
 	def run(self, ui):
 		"""Performs the main loop of the client."""

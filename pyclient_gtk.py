@@ -12,10 +12,10 @@ from twisted.internet import gtk2reactor
 gtk2reactor.install()
 
 # Run PyClient
-import Client
-client = Client.Client()
+from pyclient.Client import Client
+client = Client(__file__)
 
-from GTKClient import GTKClient
+from pyclient.GTKClient import GTKClient
 #self.ui = GTKClient(self)
 		
 client.run(GTKClient(client))
