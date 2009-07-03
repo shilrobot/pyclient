@@ -15,6 +15,9 @@ HIGH PRIORITY
 
 MEDIUM PRIORITY
 ===============
+* Aliasing (/alias)
+* Tab completion - both /pyclient commands and .ta commands and names
+  -- Possibly with hints for what token you're entering
 * Tabs for .whisper and .tell
 * /ping
 * Parse and understand XML from TA

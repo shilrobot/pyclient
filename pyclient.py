@@ -6,13 +6,17 @@ try:
 	psyco.full()
 except:
 	pass
-
+	
 # Install GTK reactor before we do any Twisted based stuff
 from twisted.internet import gtk2reactor
 gtk2reactor.install()
-	
+
 # Run PyClient
 import Client
 client = Client.Client()
-client.run()
+
+from GTKClient import GTKClient
+#self.ui = GTKClient(self)
+		
+client.run(GTKClient(client))
 client.shutdown()

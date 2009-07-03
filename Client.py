@@ -49,6 +49,7 @@ def distance(a,b):
             c[i,j] = min(x,y,z)
     return c[n,m] 
     
+# From same conversation as above
 def relative(a, b):
     """
     Computes a relative distance between two strings. Its in the range
@@ -97,13 +98,14 @@ class Client:
 	def getPath(self, relpath):
 		return os.path.abspath(os.path.join(os.path.dirname(__file__), relpath))
 				
-	def run(self):
+	def run(self, ui):
 		"""Performs the main loop of the client."""
 	
 		# Run stuff...
 		# TODO: Clean this up as more stuff folds into the new design
-		from GTKClient import GTKClient
-		self.ui = GTKClient(self)
+		#from GTKClient import GTKClient
+		#self.ui = GTKClient(self)
+		self.ui = ui
 		
 		self.echo(EV_GREEN+EV_BOLD+Version.FULLNAME)
 		self.echo(EV_CYAN+'See /help for a list of commands')
