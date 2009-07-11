@@ -72,6 +72,7 @@ COMMAND_REGEX = re.compile(r'^/([a-zA-Z0-9_-]+)([ \t](.*))?$')
 class Client:
 	
 	def __init__(self, mainPath):
+		Client.instance = self
 		self._mainPath = mainPath
 		self._commands = {}
 		#self.events = EventBus.EventBus()
@@ -115,10 +116,13 @@ class Client:
 		from twisted.internet import reactor
 		reactor.run()
 		
+	def saveConfig(self):
+		self.cfg.save(self._configPath)
+		
 	def shutdown(self):
 		"""Closes down the client."""
 		self.conn.disconnect()
-		self.cfg.save(self._configPath)
+		self.saveConfig()
 		
 	def echo(self, line=None):
 		if line is None:
@@ -173,25 +177,32 @@ class Client:
 			else:
 				self.echo('Connection closed')
 		self.ui.stateChanged(state)
-				
 		
+	def connect(self, host=None, port=None):
+		defaultHost = self.cfg.getStr('server/host', 'tiberia.homeip.net')
+		defaultPort = self.cfg.getInt('server/port', '1337')
+		
+		if host is None:
+			self.connect(defaultHost, defaultPort)
+		elif host is not None and port is None:
+			self.connect(host, 23)
+		else:
+			self.connect(host, port)
+				
 	def _cmdConnect(self, params):
 		if len(params.strip()) > 0:
 			match = re.match("^\s*([^:\s]+)\s*:?\s*([0-9]+)?\s*$", params)
 			if match is not None:
 				host = match.group(1)
 				port = match.group(2)
-				if port is None:
-					port = 23 # telnet
-				else:
+				if port is not None:
 					port = int(port)
+				self.connect(host, port)
 			else:
 				self.echo("Malformed host/port spec: %s" % params)
 				return
 		else:
-			host = self.cfg.getStr('server/host', 'tiberia.homeip.net')
-			port = self.cfg.getInt('server/port', '1337')
-		self.conn.connect(host,port)
+			self.connect()
 		
 	def _cmdClose(self, params):
 		self.conn.disconnect()
