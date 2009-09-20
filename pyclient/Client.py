@@ -7,7 +7,6 @@ import EventBus
 import re
 from ta2 import *
 import gtk
-import twisted.copyright
 import sys
 import Version
 import Log
@@ -100,7 +99,7 @@ class Client:
 	def getPath(self, relpath):
 		return os.path.abspath(os.path.join(os.path.dirname(self._mainPath), relpath))
 				
-	def run(self, ui):
+	def start(self, ui):
 		"""Performs the main loop of the client."""
 	
 		# Run stuff...
@@ -113,8 +112,8 @@ class Client:
 		self.echo(EV_CYAN+'See /help for a list of commands')
 		self.echo()
 		
-		from twisted.internet import reactor
-		reactor.run()
+		#from twisted.internet import reactor
+		#reactor.run()
 		
 	def saveConfig(self):
 		self.cfg.save(self._configPath)
@@ -183,11 +182,11 @@ class Client:
 		defaultPort = self.cfg.getInt('server/port', '1337')
 		
 		if host is None:
-			self.connect(defaultHost, defaultPort)
+			self.conn.connect(defaultHost, defaultPort)
 		elif host is not None and port is None:
-			self.connect(host, 23)
+			self.conn.connect(host, 23)
 		else:
-			self.connect(host, port)
+			self.conn.connect(host, port)
 				
 	def _cmdConnect(self, params):
 		if len(params.strip()) > 0:
@@ -239,8 +238,7 @@ class Client:
 		func('PyClient '+Version.VERSION + \
 			 ' / Python '+pyver + \
 			 ' / GTK '+ '.'.join([str(x) for x in gtk.gtk_version]) + \
-			 ' / PyGTK '+ '.'.join([str(x) for x in gtk.pygtk_version]) + \
-			 ' / Twisted '+twisted.copyright.version)
+			 ' / PyGTK '+ '.'.join([str(x) for x in gtk.pygtk_version]))
 			 
 	def _showCommandHelp(self, c):
 		tabs = "    "

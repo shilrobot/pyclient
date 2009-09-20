@@ -1,12 +1,13 @@
 """The main client window code"""
 
-import gtk,pango
+import gtk,pango,gobject
 #from TwistedClient import *
 from GTKOutputCtrl import GTKOutputCtrl
 import Version
 #import Config
 from Connection import *
 import os
+import time
 
 # TODO: Make a class for the *window itself*
 
@@ -132,10 +133,14 @@ class GTKClient:
 		#self._client.addCommand('testlogin', self.testLogin, None, 'Tests login dialog')
 
 		self._client = client
+		#self._client.ui = self
+		self._client.conn.callback = lambda: gobject.idle_add(self._client.conn.update)
+		#self._netCallback
 		#self._client.events.register('conn.dataReceived', self._onDataReceived)
 		#self._client.events.register('client.echo', self._onEcho)
 		
 		#self.updateUI()
+		self._destroying = False
 		self.stateChanged(self._client.conn.getState())
 
 		# Display some basic info when we start up
@@ -268,19 +273,8 @@ class GTKClient:
 		"""Called during GTK window destruction. At this point it's
 		already too destroyed to check the window size and so on,
 		so we have to do that in the delete event."""
-		# We can't to gtk.main_quit() here, because apparently this
-		# doesn't let Twisted clean up its threads or whatever else
-		# it has running. Instead, we do reactor.stop().
-		#
-		# This didn't cause a problem for me with Twisted 1.3.x on
-		# Hoary, but it did foul up on Twisted 2.0.x on Breezy,
-		# so I assume it's Twisted 2 that's to blame for this change.
-		#
-		# This fixes a bug the Pouya had reported a while ago but
-		# I never had been able to replicate (Until I got Twisted 2,
-		# at least.)
-		from twisted.internet import reactor
-		reactor.stop()
+		self._destroying = True
+		gtk.main_quit()
 		
 	def onReceiveText(self, text):
 		self.output.write(text)
@@ -293,6 +287,8 @@ class GTKClient:
 		
 	def stateChanged(self, newstate):
 		#print '*** stateChanged'
+		if self._destroying:
+			return
 		connect = self.actions.get_action("Connect")
 		connect.set_sensitive(newstate == STATE_DISCONNECTED)
 		disconnect = self.actions.get_action("Disconnect")

@@ -7,16 +7,25 @@ try:
 except:
 	pass
 	
-# Install GTK reactor before we do any Twisted based stuff
-from twisted.internet import gtk2reactor
-gtk2reactor.install()
-
-# Run PyClient
+# Create the core client
 from pyclient.Client import Client
 client = Client(__file__)
 
+# Create the GTK UI for the client
 from pyclient.GTKClient import GTKClient
-#self.ui = GTKClient(self)
-		
-client.run(GTKClient(client))
+import gtk
+
+
+# If we don't do this, pygtk won't let other threads get the GIL
+gtk.gdk.threads_init() 
+
+# Set up
+client.start(GTKClient(client))
+
+# GTK main loop
+gtk.main()
+
+# Tear down
 client.shutdown()
+
+
