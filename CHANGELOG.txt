@@ -1,5 +1,8 @@
 Stuff that's changed...
 
+0.06 untitled
+* No longer relies on Twisted.
+
 0.05 "She Plays Darts Like a Spanner"
 * PyClient is resurrected from BEYOND THE GRAVE
 * Config information is now placed in the same directory as pyclient

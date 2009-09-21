@@ -1,6 +1,6 @@
 #from twisted.internet import reactor
 #from twisted.internet.protocol import Protocol, ClientFactory
-import Socket
+import SocketWrapper
 from Event import Event
 
 # Possible client states
@@ -105,15 +105,15 @@ class Connection:
 		socketDied = False
 		for s in self._sockets:
 			s.update()
-			if s.state == Socket.ST_DISCONNECTED:
+			if s.state == SocketWrapper.ST_DISCONNECTED:
 				socketDied = True
 		if socketDied:
-			self._sockets = [x for x in self._sockets if x.state != Socket.ST_DISCONNECTED]
+			self._sockets = [x for x in self._sockets if x.state != SocketWrapper.ST_DISCONNECTED]
 					
 			
-class TiberiaSocket(Socket.Socket):
+class TiberiaSocket(SocketWrapper.SocketWrapper):
 	def __init__(self, conn):
-		Socket.Socket.__init__(self)
+		SocketWrapper.SocketWrapper.__init__(self)
 		self._conn = conn
 
 	def connectionFailed(self):

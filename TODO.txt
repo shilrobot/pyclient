@@ -2,7 +2,7 @@ TODO list for PyClient
 
 HIGH PRIORITY
 =============
-* Fix flakiness that occurs when you do things like cancel connecting or disconnect/reconnect quickly in sequence (interleaving of messages)
+* Use the right glib/gobject idle_add call depending on pygtk version
 * Look into shit about unicode token parsing. Where is it used, is our implementation correct, etc.
   -- Potential that EV_NORMAL + hex digits = silently broken
 * Configuration dialog
