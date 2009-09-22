@@ -12,7 +12,7 @@ __all__ = [
 	'isConnected',
 	'getHost',
 	'getPort',
-	'send'
+	'send',
 	'execute',
 	'hasConfigKey',
 	'getConfigBool',
@@ -32,6 +32,7 @@ def echo(line=''):
 	_client.echo(line)
 
 def exit():
+	# TODO: Make this crap work properly
 	_client.shutdown()
 	
 def connect(host=None, port=None):

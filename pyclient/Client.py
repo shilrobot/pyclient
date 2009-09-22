@@ -3,7 +3,7 @@ import Config
 import Connection
 import GTKClient
 #import Commands
-import EventBus
+#import EventBus
 import re
 from ta2 import *
 import gtk
@@ -89,7 +89,7 @@ class Client:
 		self.addCommand("echo", self._cmdEcho, '<text>', 'Displays a line of text in the output window.')
 		self.addCommand("version", self._cmdVersion, '[all]', 'Displays version information. Follow with "all" to send.')
 		self.addCommand("colors", self._cmdColors, '', 'Shows available color codes.')
-		self.addCommand("me", self._cmdMe, '<test>', 'Emulation of IRC /me command.')
+		#self.addCommand("me", self._cmdMe, '<test>', 'Emulation of IRC /me command.')
 		self.addCommand("help", self._cmdHelp, '', 'Displays help information.')
 		#self.addCommand("eval", _cmdMe)
 		#else:
@@ -111,6 +111,10 @@ class Client:
 		self.echo(EV_GREEN+EV_BOLD+Version.FULLNAME)
 		self.echo(EV_CYAN+'See /help for a list of commands')
 		self.echo()
+		
+		self._loadPlugins()
+		
+		# TODO: Load plugins...
 		
 		#from twisted.internet import reactor
 		#reactor.run()
@@ -286,3 +290,36 @@ class Client:
 			for c in cmds:
 				self._showCommandHelp(c)
 				
+	def _isIdentifier(self, name):
+		return re.match(r'^[A-Za-z_][A-Za-z0-9_]$', name)
+				
+	def _isPluginModule(self, path):
+		return path.lower().endswith('.py') and os.path.isfile(path)
+		
+	def _isPluginPackage(self, path):
+		return os.path.isdir(path) and os.path.isfile(os.path.join(path, '__init__.py'))
+		
+	def _importPlugin(self, name):
+		# fqname is something like 'foo'
+		#self.echo('Found plugin: %s'%name)
+		try:
+			exec "import plugins.%s"%name in {},{}
+			self.echo("Load plugin %s "%("'%s':"%name)+EV_GREEN+EV_BOLD+"OK")
+		except:
+			self.echo("Load plugin %s "%("'%s':"%name)+EV_RED+EV_BOLD+"FAIL")
+			import traceback as tb
+			self.echo(tb.format_exc())
+			self.echo()
+		
+	def  _loadPlugins(self):
+		pluginsPath = self.getPath('plugins')
+		for f in os.listdir(pluginsPath):
+			plug = os.path.join(pluginsPath, f)
+			if self._isPluginModule(plug):
+				modName = f[:-3]
+				if self._isIdentifier(modName):
+					self._importPlugin(modName)
+			elif self._isPluginPackage(plug):
+				if self._isIdentifier(f):
+					self._importPlugin(f)
+					

@@ -15,7 +15,6 @@ client = Client(__file__)
 from pyclient.GTKClient import GTKClient
 import gtk
 
-
 # If we don't do this, pygtk won't let other threads get the GIL
 gtk.gdk.threads_init() 
 
