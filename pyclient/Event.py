@@ -13,3 +13,10 @@ class Event:
 	def notify(self, *args, **kwargs):
 		for handler in self.handlers:
 			handler(*args, **kwargs)
+			
+	def notifyCancelable(self, *args, **kwargs):
+		"""Executes all handlers, stopping if one returns True and returning True. Otherwise executes the rest and returns False."""
+		for handler in self.handlers:
+			if handler(*args, **kwargs):
+				return True
+		return False

@@ -23,12 +23,12 @@ class SocketWrapper:
 		self._sock = socket.socket()
 		# infinite queue length
 		self._evtQ = Queue.Queue(0)
-		self._mainThread = threading.current_thread()
+		self._mainThread = threading.currentThread()
 		self._readThread = None
 		self.callback = None
 		
 	def _get_state(self):
-		assert threading.current_thread() is self._mainThread
+		self._checkMainThread()
 		return self._state
 		
 	state = property(_get_state)
@@ -40,14 +40,14 @@ class SocketWrapper:
 			self.callback()
 		
 	def connect(self, host, port):
-		assert threading.current_thread() is self._mainThread
+		self._checkMainThread()
 		assert self._state == ST_INIT
 		self._state = ST_CONNECTING
 		self._readThread = threading.Thread(target=self._readThreadFunc, args=(host,port))
 		self._readThread.start()
 	
 	def close(self):
-		assert threading.current_thread() is self._mainThread
+		self._checkMainThread()
 		assert self._state != ST_INIT
 		if self._state == ST_CONNECTING or self._state == ST_CONNECTED:
 			try:
@@ -66,7 +66,7 @@ class SocketWrapper:
 				
 	def send(self, data):
 		# if we ever noticeably block sending on a telnet server we are doing something wrong
-		assert threading.current_thread() is self._mainThread
+		self._checkMainThread()
 		assert self._state in [ST_CONNECTED, ST_DISCONNECTING]
 		if self._state == ST_DISCONNECTING:
 			return
@@ -79,7 +79,7 @@ class SocketWrapper:
 			data = data[bytesSent:]
 		
 	def update(self):
-		assert threading.current_thread() is self._mainThread
+		self._checkMainThread()
 		while 1:
 			try:
 				(evt,data) = self._evtQ.get(False)
@@ -130,6 +130,9 @@ class SocketWrapper:
 		#print 'Read thread ran out of data'
 		#print time.time(), 'Read thread ran out of data'
 		self._evt(EVT_READ_THREAD_DONE)
+		
+	def _checkMainThread(self):
+		assert threading.currentThread() is self._mainThread
 					
 	def dataReceived(self, data):
 		#print 'dataReceived(%s)' % repr(data)

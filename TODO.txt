@@ -2,16 +2,14 @@ TODO list for PyClient
 
 HIGH PRIORITY
 =============
-* Use the right glib/gobject idle_add call depending on pygtk version
+* Timers
 * Look into shit about unicode token parsing. Where is it used, is our implementation correct, etc.
   -- Potential that EV_NORMAL + hex digits = silently broken
 * Configuration dialog
-* Auto-login
-* Auto-TA2 mode
+* Auto-login (plugin?)
+* Auto-TA2 mode (plugin?)
 * Slow to resize to be smaller as window refreshes (chugging doing text layout)
 * Window appears to have large minimum size on Ubuntu
-* Sensible plugin architecture
-  (more for me than for users -- makes it easy to implement this stuff)
 
 MEDIUM PRIORITY
 ===============

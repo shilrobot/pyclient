@@ -4,9 +4,12 @@ from pyclient.Client import *
 from pyclient.Connection import *
 import types
 
+# yes this is on purpose
+import ta2.Constants
+from ta2.Constants import *
+
 __all__ = [
 	'echo',
-	'exit',
 	'connect',
 	'disconnect',
 	'isConnected',
@@ -23,18 +26,21 @@ __all__ = [
 	'setConfigStr',
 	'saveConfig',
 	'addCommand',
-	'command'
+	'command',
+	'addHook',
+	'hook'
 ]
 	
+# Add color codes, etc. from ta2 constants. Only require one import this way.
+for x in dir(ta2.Constants):
+	if x.startswith('EV_') or x.startswith('ANSI_'):
+		__all__.append(x)
+
 _client = Client.instance
 
 def echo(line=''):
 	_client.echo(line)
 
-def exit():
-	# TODO: Make this crap work properly
-	_client.shutdown()
-	
 def connect(host=None, port=None):
 	_client.connect(host, port)
 	
@@ -87,9 +93,45 @@ def addCommand(name_or_names, func, params='', doc=''):
 def command(f, params='', doc=None):
 	assert isinstance(f, types.FunctionType)
 	if doc is None:
-		if hasattr(f, __doc__):
-			doc = f.__doc_
+		if hasattr(f, '__doc__'):
+			doc = f.__doc__
 		else:
 			doc = ''
 	addCommand(f.func_name, f, params, doc)
 	return f
+
+if 0:
+	class command:
+		def __init__(self, params='', doc=None):
+			self.params = params
+			self.doc = doc
+			
+		def __call__(self,f):
+			assert isinstance(f, types.FunctionType)
+			doc = self.doc
+			if doc is None:
+				if hasattr(f, '__doc__'):
+					doc = f.__doc__
+				else:
+					doc = ''
+			addCommand(f.func_name, f, self.params, doc)
+			return f
+		
+# TODO: Make this a decorator?
+def addHook(name, func):
+	if name == 'lineReceived':
+		_client.lineReceived.register(func)
+	elif name == 'xmlReceived':
+		_client.xmlReceived.register(func)
+	elif name == 'connected':
+		_client.connected.register(func)
+	elif name == 'disconnected':
+		_client.disconnected.register(func)
+	else:
+		assert False
+
+def hook(name):
+	def _helper(f):
+		addHook(name,f)
+		return f
+	return _helper

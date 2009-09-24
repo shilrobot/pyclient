@@ -4,4 +4,3 @@ from pyclient.api import *
 def me(line):
 	"""Emulation of IRC /me command."""
 	send('.action '+line)
-

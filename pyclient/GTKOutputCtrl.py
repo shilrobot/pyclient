@@ -11,7 +11,6 @@ class GTKOutputCtrl(gtk.TextView):
 	def __init__(self, cfg):
 		gtk.TextView.__init__(self, buffer=None)
 		self.cfg = cfg
-		self._parser = LineParser()
 		self.set_wrap_mode(gtk.WRAP_WORD_CHAR)
 		
 		states = [gtk.STATE_NORMAL, gtk.STATE_ACTIVE, gtk.STATE_PRELIGHT, gtk.STATE_INSENSITIVE]
@@ -162,29 +161,13 @@ class GTKOutputCtrl(gtk.TextView):
 	def _insertNewline(self):
 		self._buffer.insert(self._buffer.get_end_iter(), "\n")
 
-	def write(self, text):
+	def write(self, chunks):
 		"""Parses and writes text to the output control, and
 		scrolls it into view
 		"""
-		#print "write(%s)"% repr(text)
-		# TODO: Talking to LineParser shouldn't be done here, I don't think.
-		self._parser.queueData(text)
-		while 1:
-			line = self._parser.getLine()
-			if line == None:
-				break
-			else:
-				textChunks = 0
-				xmlChunks = 0
-				for chunk in line:
-					if isinstance(chunk, XmlChunk):
-						print "Got some XML:", chunk.xml
-						xmlChunks += 1
-					else:
-						self._insertChunk(chunk)
-						textChunks += 1
-				if textChunks > 0 or xmlChunks == 0:
-					self._insertNewline()
+		for c in chunks:
+			self._insertChunk(c)
+		self._insertNewline()
 		mark = self._buffer.create_mark(None, self._buffer.get_end_iter())
 		self.scroll_to_mark(mark, 0)
 

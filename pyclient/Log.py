@@ -24,7 +24,6 @@ class Log:
 
 	def __init__(self, client):
 		self._client = client
-		self._parser = LineParser()
 		self._currCol = '#FFFFFF'
 		self._logPath = None
 		self._logFile = None
@@ -114,19 +113,6 @@ class Log:
 		self._logFile.write(s)
 		self._logFile.flush()
 		
-	def write(self, data):
-		self._parser.queueData(data)
-		while 1:
-			line = self._parser.getLine()
-			if line == None:
-				break
-			else:
-				textChunks = []
-				xmlChunks = []
-				for chunk in line:
-					if isinstance(chunk, XmlChunk):
-						xmlChunks.append(chunk)
-					else:
-						textChunks.append(chunk)
-				if (len(textChunks) > 0 or len(xmlChunks) == 0) and self._acquireLog():
-					self._writeChunks(textChunks)
+	def write(self, chunks):
+		if self._acquireLog():
+			self._writeChunks(chunks)

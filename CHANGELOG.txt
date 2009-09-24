@@ -1,7 +1,13 @@
 Stuff that's changed...
 
 0.06 untitled
-* No longer relies on Twisted.
+* No longer relies on Twisted. This may help adding more frontends in the future.
+* Added basic plugin architecture. Add a module or package to the 'plugins' directory and it will be loaded on startup.
+  Please only interface with the client using the 'pyclient.api' module. Examples are in the plugins directory.
+  Example plugins at the moment:
+    /me -- Emulates /me from IRC clients for people that make that mistake
+    /colors -- Shows a colorized list of color codes available in TA 
+* Parsing of lines now only occurs in one place, allowing proper "line received" events.
 
 0.05 "She Plays Darts Like a Spanner"
 * PyClient is resurrected from BEYOND THE GRAVE

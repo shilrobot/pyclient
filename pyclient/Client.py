@@ -11,6 +11,7 @@ import sys
 import Version
 import Log
 import difflib
+import Event
 
 class Command:
 	def __init__(self, names, func, params=None, doc=None):
@@ -76,8 +77,13 @@ class Client:
 		self._commands = {}
 		#self.events = EventBus.EventBus()
 		self.conn = Connection.Connection()
-		self.conn.dataReceived.register(self._onDataReceived)
+		self.conn.lineReceived.register(self._onLineReceived)
+		self.conn.xmlReceived.register(self._onXmlReceived)
 		self.conn.stateChanged.register(self._onConnStateChanged)
+		self.connected = Event.Event()
+		self.disconnected = Event.Event()
+		self.lineReceived = Event.Event()
+		self.xmlReceived = Event.Event()
 		self.log = Log.Log(self)
 		# TODO: Remove 'Config.currentConfig' entirely and have it only exist under Client
 		self._configPath = self.getPath('config.xml')
@@ -88,7 +94,7 @@ class Client:
 		self.addCommand(["disconnect","close"], self._cmdClose, '', 'Disconnects from server.')
 		self.addCommand("echo", self._cmdEcho, '<text>', 'Displays a line of text in the output window.')
 		self.addCommand("version", self._cmdVersion, '[all]', 'Displays version information. Follow with "all" to send.')
-		self.addCommand("colors", self._cmdColors, '', 'Shows available color codes.')
+		#self.addCommand("colors", self._cmdColors, '', 'Shows available color codes.')
 		#self.addCommand("me", self._cmdMe, '<test>', 'Emulation of IRC /me command.')
 		self.addCommand("help", self._cmdHelp, '', 'Displays help information.')
 		#self.addCommand("eval", _cmdMe)
@@ -127,10 +133,6 @@ class Client:
 		self.conn.disconnect()
 		self.saveConfig()
 		
-	def echo(self, line=None):
-		if line is None:
-			line = ''
-		self._displayText(ANSI_NORMAL+line+ANSI_NORMAL+'\r\n')
 		
 	def send(self, line):
 		# TODO: Send through output filter stack...
@@ -160,12 +162,31 @@ class Client:
 		for n in cmd.names:
 			self._commands[n] = cmd
 		
-	def _onDataReceived(self, data):
-		self._displayText(data)
+	def echo(self, line=None):
+		if line is None:
+			line = ''
+		formattedLine = line+'\r\n'
+		parser = LineParser()
+		parser.queueData(formattedLine)
+		while 1:
+			chunks = parser.getLine()
+			if chunks is None:
+				return
+			elif len(chunks) == 1 and isinstance(chunks[0], XmlChunk):
+				continue
+			else:
+				self.log.write(chunks)
+				self.ui.onReceiveText(chunks)
 		
-	def _displayText(self, data):
-		self.log.write(data)
-		self.ui.onReceiveText(data)		
+	def _onLineReceived(self, chunks):
+		#print repr(chunks)
+		self.log.write(chunks)
+		if not self.lineReceived.notifyCancelable(chunks):
+			self.ui.onReceiveText(chunks)	
+		
+	def _onXmlReceived(self, xml):
+		#print 'Got some XML:'+xml
+		self.xmlReceived.notifyCancelable(xml)
 		
 	def _onConnStateChanged(self, state, reason):
 		if state == Connection.STATE_CONNECTING:
@@ -174,11 +195,13 @@ class Client:
 			self.echo('Connected!')
 			self.cfg.setStr('server/host', self.conn.getHost())
 			self.cfg.setInt('server/port', self.conn.getPort())
+			self.connected.notify()
 		elif state == Connection.STATE_DISCONNECTED:
 			if reason == Connection.REASON_CONNECTION_FAILED:
 				self.echo('Connection failed')
 			else:
 				self.echo('Connection closed')
+			self.disconnected.notify()
 		self.ui.stateChanged(state)
 		
 	def connect(self, host=None, port=None):
@@ -291,7 +314,7 @@ class Client:
 				self._showCommandHelp(c)
 				
 	def _isIdentifier(self, name):
-		return re.match(r'^[A-Za-z_][A-Za-z0-9_]$', name)
+		return re.match(r'^[A-Za-z_][A-Za-z0-9_]*$', name)
 				
 	def _isPluginModule(self, path):
 		return path.lower().endswith('.py') and os.path.isfile(path)
@@ -304,22 +327,37 @@ class Client:
 		#self.echo('Found plugin: %s'%name)
 		try:
 			exec "import plugins.%s"%name in {},{}
-			self.echo("Load plugin %s "%("'%s':"%name)+EV_GREEN+EV_BOLD+"OK")
+			self.echo("Load plugin "+EV_BOLD+name+EV_NORMAL+": "+EV_GREEN+EV_BOLD+"OK")
 		except:
-			self.echo("Load plugin %s "%("'%s':"%name)+EV_RED+EV_BOLD+"FAIL")
+			self.echo("Load plugin "+EV_BOLD+name+EV_NORMAL+": "+EV_RED+EV_BOLD+"FAIL")
 			import traceback as tb
 			self.echo(tb.format_exc())
 			self.echo()
 		
 	def  _loadPlugins(self):
 		pluginsPath = self.getPath('plugins')
-		for f in os.listdir(pluginsPath):
+		files = os.listdir(pluginsPath)
+		files.sort(lambda a, b: cmp(a.lower(), b.lower()))
+		pluginsAttempted = 0
+		for f in files:
+			#print f
+			if f.startswith('.') or f.startswith('_'):
+				continue
 			plug = os.path.join(pluginsPath, f)
 			if self._isPluginModule(plug):
+				#print ' module'
 				modName = f[:-3]
 				if self._isIdentifier(modName):
+					#print '  identifier'
 					self._importPlugin(modName)
+					pluginsAttempted += 1
 			elif self._isPluginPackage(plug):
+				#print ' pkg'
 				if self._isIdentifier(f):
+					#print '  identifier'
 					self._importPlugin(f)
-					
+					pluginsAttempted += 1
+		# extra blank line
+		if pluginsAttempted > 0:
+			self.echo()
+		

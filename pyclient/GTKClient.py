@@ -9,6 +9,19 @@ from Connection import *
 import os
 import time
 
+try:
+	import glib
+	have_glib = True
+except:
+	have_glib = False
+
+def _idle_add(f):
+	# newer versions of pygtk use glib.idle_add instead of gobject.idle_add
+	if have_glib and hasattr(glib, 'idle_add'):
+		glib.idle_add(f)
+	else:
+		gobject.idle_add(f)
+
 # TODO: Make a class for the *window itself*
 
 class GTKClient:
@@ -134,7 +147,7 @@ class GTKClient:
 
 		self._client = client
 		#self._client.ui = self
-		self._client.conn.callback = lambda: gobject.idle_add(self._client.conn.update)
+		self._client.conn.callback = lambda: _idle_add(self._client.conn.update)
 		#self._netCallback
 		#self._client.events.register('conn.dataReceived', self._onDataReceived)
 		#self._client.events.register('client.echo', self._onEcho)
@@ -145,6 +158,7 @@ class GTKClient:
 
 		# Display some basic info when we start up
 		#self.startupBanner()
+		
 
 	def restoreWindowPosition(self):
 		"""Restores the old window configuration from the config file."""
@@ -276,8 +290,8 @@ class GTKClient:
 		self._destroying = True
 		gtk.main_quit()
 		
-	def onReceiveText(self, text):
-		self.output.write(text)
+	def onReceiveText(self, chunks):
+		self.output.write(chunks)
 
 	def quit(self, args=''):
 		self.destroy()

@@ -2,6 +2,7 @@
 #from twisted.internet.protocol import Protocol, ClientFactory
 import SocketWrapper
 from Event import Event
+import ta2
 
 # Possible client states
 STATE_DISCONNECTED = "STATE_DISCONNECTED"
@@ -23,9 +24,11 @@ class Connection:
 		self._port = None
 		self._socket = None
 		self.stateChanged = Event()
-		self.dataReceived = Event()
+		self.lineReceived = Event()
+		self.xmlReceived = Event()
 		self.callback = lambda:None
 		self._sockets = []
+		self._parser = None
 		
 	def connect(self, host, port):
 		"""Start connecting to a given host/port, terminating current connection if necessary."""
@@ -38,6 +41,7 @@ class Connection:
 		self._socket.callback = self.callback
 		self._sockets.append(self._socket)
 		self._socket.connect(host,port)
+		self._parser = ta2.LineParser()
 		self._enterState(STATE_CONNECTING)
 			
 	def disconnect(self):
@@ -77,6 +81,7 @@ class Connection:
 		self._port = None
 		self._socket = None
 		self._enterState(STATE_DISCONNECTED, reason)
+		self._parser = None
 			
 	def _enterState(self, state, reason=None):
 		oldState = self._state
@@ -98,7 +103,8 @@ class Connection:
 		
 	def _dataReceived(self, sock, data):
 		if sock is self._socket:
-			self.dataReceived.notify(data)
+			self._parser.queueData(data)
+			#self.dataReceived.notify(data)
 			
 	def update(self):
 		#print 'Connection.update()'
@@ -109,7 +115,21 @@ class Connection:
 				socketDied = True
 		if socketDied:
 			self._sockets = [x for x in self._sockets if x.state != SocketWrapper.ST_DISCONNECTED]
-					
+			
+		while 1:
+			lineChunks = self._parser.getLine()
+			if lineChunks is None:
+				break
+			textChunks = []
+			xmlChunks = []
+			for c in lineChunks:
+				if isinstance(c, ta2.XmlChunk):
+					self.xmlReceived.notify(c.xml)
+					xmlChunks.append(c)
+				else:
+					textChunks.append(c)
+			if (len(textChunks) > 0 or len(xmlChunks) == 0):
+				self.lineReceived.notify(textChunks)
 			
 class TiberiaSocket(SocketWrapper.SocketWrapper):
 	def __init__(self, conn):
