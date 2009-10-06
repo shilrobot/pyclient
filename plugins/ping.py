@@ -76,8 +76,8 @@ class Pinger:
 				stdev = math.sqrt(var)
 			else:
 				stdev = 0
-		echo('Ping '+EV_RED+'min'+EV_NORMAL+'/'+EV_YELLOW+'avg'+EV_NORMAL+'/'+EV_GREEN+'max'+EV_NORMAL+'/'+EV_CYAN+'stdev'+EV_NORMAL+': '+
-				     EV_RED+'%.3f'+EV_NORMAL+'/'+EV_YELLOW+'%.3f'+EV_NORMAL+'/'+EV_GREEN+'%.3f'+EV_NORMAL+'/'+EV_CYAN+'%.3f'+EV_NORMAL+' ms'
+		echo(('Ping '+EV_RED+'min'+EV_NORMAL+'/'+EV_YELLOW+'avg'+EV_NORMAL+'/'+EV_GREEN+'max'+EV_NORMAL+'/'+EV_CYAN+'stdev'+EV_NORMAL+': '+
+				     EV_RED+'%d'+EV_NORMAL+'/'+EV_YELLOW+'%d'+EV_NORMAL+'/'+EV_GREEN+'%d'+EV_NORMAL+'/'+EV_CYAN+'%d'+EV_NORMAL+' ms')
 				% (round(minPing*1000),
 					round(avgPing*1000),
 					round(maxPing*1000),

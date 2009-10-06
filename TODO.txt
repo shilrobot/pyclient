@@ -2,13 +2,15 @@ TODO list for PyClient
 
 HIGH PRIORITY
 =============
+* Fix bug that occurs when you close the client while it's minimized causing it not to launch properly again
 * Timers
 * Look into shit about unicode token parsing. Where is it used, is our implementation correct, etc.
   -- Potential that EV_NORMAL + hex digits = silently broken
+  -- AR's version vs. Druink's?
 * Configuration dialog
 * Auto-login (plugin?)
 * Auto-TA2 mode (plugin?)
-* Slow to resize to be smaller as window refreshes (chugging doing text layout)
+* Slow to make window smaller as window refreshes (chugging doing text layout)
 * Window appears to have large minimum size on Ubuntu
 
 MEDIUM PRIORITY
@@ -17,7 +19,6 @@ MEDIUM PRIORITY
 * Tab completion - both /pyclient commands and .ta commands and names
   -- Possibly with hints for what token you're entering
 * Tabs for .whisper and .tell
-* /ping
 * Parse and understand XML from TA
   -- Expose to plugins in easy to understand ways
 * Command history

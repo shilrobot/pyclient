@@ -102,21 +102,13 @@ class Connection:
 			self._enterState(STATE_CONNECTED)
 		
 	def _dataReceived(self, sock, data):
-		if sock is self._socket:
-			self._parser.queueData(data)
-			#self.dataReceived.notify(data)
+		if sock is not self._socket:
+			return
 			
-	def update(self):
-		#print 'Connection.update()'
-		socketDied = False
-		for s in self._sockets:
-			s.update()
-			if s.state == SocketWrapper.ST_DISCONNECTED:
-				socketDied = True
-		if socketDied:
-			self._sockets = [x for x in self._sockets if x.state != SocketWrapper.ST_DISCONNECTED]
-			
-		while 1:
+		self._parser.queueData(data)
+		
+		# TODO: This is rather ugly! :(
+		while True:
 			lineChunks = self._parser.getLine()
 			if lineChunks is None:
 				break
@@ -130,6 +122,17 @@ class Connection:
 					textChunks.append(c)
 			if (len(textChunks) > 0 or len(xmlChunks) == 0):
 				self.lineReceived.notify(textChunks)
+			
+	def update(self):
+		#print 'Connection.update()'
+		socketDied = False
+		for s in self._sockets:
+			s.update()
+			if s.state == SocketWrapper.ST_DISCONNECTED:
+				socketDied = True
+		if socketDied:
+			self._sockets = [x for x in self._sockets if x.state != SocketWrapper.ST_DISCONNECTED]
+			
 			
 class TiberiaSocket(SocketWrapper.SocketWrapper):
 	def __init__(self, conn):

@@ -185,7 +185,7 @@ class Client:
 			self.ui.onReceiveText(chunks)	
 		
 	def _onXmlReceived(self, xml):
-		#print 'Got some XML:'+xml
+		print 'XML: '+xml
 		self.xmlReceived.notifyCancelable(xml)
 		
 	def _onConnStateChanged(self, state, reason):
