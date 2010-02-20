@@ -3,6 +3,8 @@ import random
 import math
 import time
 
+client = ClientAPI()
+
 TOKEN_LENGTH = 6
 TOKEN_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 
@@ -25,11 +27,11 @@ class Pinger:
 		self._pingTimes = []
 		
 	def sendPing(self, maxPings):
-		if not isConnected():
-			echo("Not connected!")
+		if not client.isConnected:
+			client.echo("Not connected!")
 			return
 		elif self._state == ST_WAIT:
-			echo("Ping already in progress")
+			client.echo("Ping already in progress")
 			return
 		assert maxPings > 0
 		self._maxPings = maxPings
@@ -39,7 +41,7 @@ class Pinger:
 		self._startTime = time.time()
 		self._state = ST_WAIT
 		self._token = _genToken()
-		send(".ping " + self._token)		
+		client.send(".ping " + self._token)		
 
 	def receivePing(self, line):
 		if self._state != ST_WAIT:
@@ -76,7 +78,7 @@ class Pinger:
 				stdev = math.sqrt(var)
 			else:
 				stdev = 0
-		echo(('Ping '+EV_RED+'min'+EV_NORMAL+'/'+EV_YELLOW+'avg'+EV_NORMAL+'/'+EV_GREEN+'max'+EV_NORMAL+'/'+EV_CYAN+'stdev'+EV_NORMAL+': '+
+		client.echo(('Ping '+EV_RED+'min'+EV_NORMAL+'/'+EV_YELLOW+'avg'+EV_NORMAL+'/'+EV_GREEN+'max'+EV_NORMAL+'/'+EV_CYAN+'stdev'+EV_NORMAL+': '+
 				     EV_RED+'%d'+EV_NORMAL+'/'+EV_YELLOW+'%d'+EV_NORMAL+'/'+EV_GREEN+'%d'+EV_NORMAL+'/'+EV_CYAN+'%d'+EV_NORMAL+' ms')
 				% (round(minPing*1000),
 					round(avgPing*1000),
@@ -92,7 +94,7 @@ def _combineChunks(chunks):
 		s += c.text
 	return s
 	
-@hook('lineReceived')
+@client.hook('lineReceived')
 def lineReceived(chunks):
 	text = _combineChunks(chunks)
 	if text.startswith('Pong!'):
@@ -100,15 +102,15 @@ def lineReceived(chunks):
 	else:
 		return False
 	
-@hook('connected')
+@client.hook('connected')
 def connected():
 	pinger.reset()
 	
-@hook('disconnected')
+@client.hook('disconnected')
 def disconnected():
 	pinger.reset()
 	
-@command
+@client.command
 def ping(args):
 	pinger.sendPing(10)
 

@@ -311,7 +311,7 @@ class GTKClient:
 		statename = {STATE_DISCONNECTED: 'Disconnected',
 							 STATE_CONNECTING: 'Connecting',
 							 STATE_CONNECTED: 'Connected'}[newstate]
-		self.statusbar.push(0, "PyClient %s / %s" % (Version.VERSION, statename))
+		self.statusbar.push(0, "PyClient %s / %s" % (Version.VERSION_NAME, statename))
 
 
 	#def _onEcho(self, line):

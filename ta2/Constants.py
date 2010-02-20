@@ -27,7 +27,7 @@ CODE_I		= '<-i>'
 CODE_U		= '<-u>'
 CODE_S		= '<-s>'
 CODE_NB		= '<-/b>'
-CODE_NI		= '<-/i>' # AAARGH
+CODE_NI		= '<-/i>'
 CODE_NU		= '<-/u>'
 CODE_NS		= '<-/s>'
 

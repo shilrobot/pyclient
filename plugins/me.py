@@ -1,6 +1,8 @@
 from pyclient.api import *
 
-@command
+client = ClientAPI()
+
+@client.command
 def me(line):
 	"""Emulation of IRC /me command."""
-	send('.action '+line)
+	client.send('.action '+line)
