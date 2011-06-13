@@ -50,7 +50,7 @@ class GTKClient:
 		# Create the scrollbar for the output window
 		self.scroll = gtk.ScrolledWindow()
 		hpolicy = gtk.POLICY_AUTOMATIC
-		if self.cfg.getBool('output/gtk24wrapping'):
+		if self.cfg.get('output/gtk24wrapping',False):
 			hpolicy = gtk.POLICY_NEVER
 		self.scroll.set_policy(hpolicy, gtk.POLICY_ALWAYS)
 		# TODO: Remove the border between the scrollbar & the control!
@@ -61,7 +61,7 @@ class GTKClient:
 
 		# Create the input box
 		self.input = gtk.TextView()
-		self.input.modify_font(pango.FontDescription(self.cfg.getStr('input/font')))
+		self.input.modify_font(pango.FontDescription(self.cfg['input/font']))
 		self.input.set_size_request(25,25)
 		self.input.connect('key-press-event', self.key_press_event)
 		self.input.show()
@@ -162,25 +162,23 @@ class GTKClient:
 
 	def restoreWindowPosition(self):
 		"""Restores the old window configuration from the config file."""
-		if self.cfg.hasKey('ui/posX') and self.cfg.hasKey('ui/posY'):
-			self.window.move(self.cfg.getInt('ui/posX'),
-							 self.cfg.getInt('ui/posY'))
-		if self.cfg.hasKey('ui/sizeX') and self.cfg.hasKey('ui/sizeY'):
-			self.window.resize(self.cfg.getInt('ui/sizeX'),
-							 self.cfg.getInt('ui/sizeY'))
-		if self.cfg.hasKey('ui/panePos'):
-			self.panes.set_position(self.cfg.getInt('ui/panePos'))
+		if 'ui/pos' in self.cfg:
+			pos = self.cfg['ui/pos']
+			self.window.move(*pos[0:2])
+		if 'ui/size' in self.cfg:
+			size = self.cfg['ui/size']
+			self.window.resize(*size[0:2])
+		if 'ui/panePos' in self.cfg:
+			self.panes.set_position(self.cfg['ui/panePos'])
 	
 	def saveWindowSettings(self):
 		"""Saves the window position to a self.cfg file."""
 		# TODO: This doesn't get called when we Ctrl+C pyclient
 		# 		from a terminal
 		# TODO: Save maximization state
-		self.cfg.setInt('ui/posX', self.window.get_position()[0])
-		self.cfg.setInt('ui/posY', self.window.get_position()[1])
-		self.cfg.setInt('ui/sizeX', self.window.get_size()[0])
-		self.cfg.setInt('ui/sizeY', self.window.get_size()[1])
-		self.cfg.setInt('ui/panePos', self.panes.get_position())
+		self.cfg['ui/pos'] = self.window.get_position()
+		self.cfg['ui/size'] = self.window.get_size()
+		self.cfg['ui/panePos'] = self.panes.get_position()
 
 	def createActions(self):
 		ui = '''\

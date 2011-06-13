@@ -41,7 +41,7 @@ class Log:
 			s += '<s>'
 		if style.color is not None:
 			if isinstance(style.color, AnsiColor):
-				hexcode = self._client.cfg.getStr('output/fg/%d' % style.color.code)
+				hexcode = self._client.cfg['output/fg/colors'][style.color.code]
 			else:
 				hexcode = style.color.code
 			s += '<font color="%s">'%hexcode

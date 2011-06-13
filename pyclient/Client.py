@@ -86,7 +86,7 @@ class Client:
 		self.xmlReceived = Event.Event()
 		self.log = Log.Log(self)
 		# TODO: Remove 'Config.currentConfig' entirely and have it only exist under Client
-		self._configPath = self.getPath('config.xml')
+		self._configPath = self.getPath('config.json')
 		self.cfg = Config.Config()
 		if os.path.exists(self._configPath):
 			self.cfg.load(self._configPath)
@@ -193,8 +193,8 @@ class Client:
 			self.echo('Connecting to %s:%d...' % ( self.conn.getHost(), self.conn.getPort()))
 		elif state == Connection.STATE_CONNECTED:
 			self.echo('Connected!')
-			self.cfg.setStr('server/host', self.conn.getHost())
-			self.cfg.setInt('server/port', self.conn.getPort())
+			self.cfg['server/host'] = self.conn.getHost()
+			self.cfg['server/port'] = self.conn.getPort()
 			self.connected.notify()
 		elif state == Connection.STATE_DISCONNECTED:
 			if reason == Connection.REASON_CONNECTION_FAILED:
@@ -205,8 +205,8 @@ class Client:
 		self.ui.stateChanged(state)
 		
 	def connect(self, host=None, port=None):
-		defaultHost = self.cfg.getStr('server/host', 'tiberia.homeip.net')
-		defaultPort = self.cfg.getInt('server/port', '1337')
+		defaultHost = self.cfg.get('server/host', 'tiberia.homeip.net')
+		defaultPort = self.cfg.get('server/port', '1337')
 		
 		if host is None:
 			self.conn.connect(defaultHost, defaultPort)

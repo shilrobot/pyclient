@@ -3,7 +3,10 @@
 from pyclient.Client import Client
 from pyclient.Connection import STATE_CONNECTED
 import types
+import inspect
+import re
 
+MODNAME_REGEX = re.compile("^plugins\.(\w+)?")
 
 # yes this is on purpose
 import ta2.Constants
@@ -17,6 +20,17 @@ class ClientAPI:
 	Please use a ClientAPI object instead of accessing other classes/modules in pyclient.
 	"""
 
+	def __init__(self, plugname=None):
+		if plugname is None:
+			# MAGIC PLUGIN NAME DETECTION
+			# Only include the module directly under 'plugins'
+			caller = inspect.stack()[1]
+			calling_module = inspect.getmodule(caller[0])
+			match = MODNAME_REGEX.match(calling_module.__name__)
+			assert match is not None
+			self._plugname = match.group()
+		else:
+			self._plugname = 'plugins.'+plugname
 	
 	def echo(self, line=''):
 		"""Prints a line to the output window."""
@@ -43,34 +57,11 @@ class ClientAPI:
 	def execute(self, line):
 		"""Executes a command as if the user had typed it in the input box."""
 		_client.execute(self, line)
-	
-	def hasConfigKey(self, key):
-		"""Checks if a configuration key exists."""
-		return _client.cfg.hasKey(key)
+			
+	def _config(self):
+		return _client.cfg.setdefault(self._plugname,{})
 		
-	def getConfigBool(self, key, default=False):
-		"""Gets a configuration value coerced to a boolean value."""
-		return _client.cfg.getBool(key, default)
-		
-	def getConfigInt(self, key, default=0):
-		"""Gets a configuration value coerced to an integer."""
-		return _client.cfg.getConfigInt(key, default)
-		
-	def getConfigStr(self, key, default=''):
-		"""Gets a configuration value as a string."""
-		return _client.cfg.getConfigStr(key, default)
-		
-	def setConfigBool(self, key, value):
-		"""Sets a configuration value to a boolean option."""
-		_client.cfg.setBool(key, value)
-		
-	def setConfigInt(self, key, value):
-		"""Sets a configuration value to an integer."""
-		_client.cfgsetConfigInt(key, value)
-		
-	def setConfigStr(self, key, value):	
-		"""Sets a configuration value to a string."""
-		_client.cfg.setConfigStr(key, value)
+	config = property(_config)
 	
 	def saveConfig(self):
 		"""Saves the current configuration to file. Useful for saving changes made to settings."""
