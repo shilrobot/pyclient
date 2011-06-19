@@ -3,7 +3,7 @@ TODO list for PyClient
 HIGH PRIORITY
 =============
 * Fix bug that occurs when you close the client while it's minimized causing it not to launch properly again
-* Timers
+* Timers for plugins
 * Look into shit about unicode token parsing. Where is it used, is our implementation correct, etc.
   -- Potential that EV_NORMAL + hex digits = silently broken
   -- AR's version vs. Druink's?
@@ -29,6 +29,9 @@ MEDIUM PRIORITY
 
 LOW PRIORITY
 ============
+* Tabs from plugins (in general)
+* Toolbar buttons from plugins
+* Menu items from plugins
 * Remove flicker when launching (possibly due to resizing immediately after creation)
 * email detection (separate from url detection)
 * Log with hyperlinks inplace
@@ -38,6 +41,7 @@ LOW PRIORITY
 * Protect against link double-click
 * Invisible cursor? (right now it's just black)
 * *Rigorous* ability to /eval multiline bits of Python
+  -- Maybe this involves the concept of opening up a "mode" on the command line?
 * Better command param parsing mechanism
 * URL history
 * Nicer package-for-distribution system

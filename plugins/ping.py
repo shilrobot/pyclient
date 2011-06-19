@@ -3,18 +3,18 @@ import random
 import math
 import time
 
-client = ClientAPI()
+client = getClient()
+
 
 TOKEN_LENGTH = 6
 TOKEN_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 
+def _genToken():
+	return ''.join(random.choice(TOKEN_CHARS) for x in range(TOKEN_LENGTH))
+	
 ST_IDLE="ST_IDLE"
 ST_WAIT="ST_WAIT"
 
-def _genToken():
-	s = ''.join(random.choice(TOKEN_CHARS) for x in range(TOKEN_LENGTH))
-	return s
-	
 class Pinger:
 	def __init__(self):
 		self.reset()

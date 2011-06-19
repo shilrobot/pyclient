@@ -8,29 +8,38 @@ import re
 
 MODNAME_REGEX = re.compile("^plugins\.(\w+)?")
 
-# yes this is on purpose
-import ta2.Constants
-from ta2.Constants import *
-
 _client = Client.instance
+	
+def magic_deco(deco_func):
+	"""
+	Makes it easier to define decorators that can be used with and without parameter lists.
+	
+	Works like this:
+	
+	class C:
+		@magic_deco
+		def foo(self, f, ...):
+			...
+	
+	@C.foo applied to g ---> g = C.foo(g)
+	@C.foo(*args, **kwargs) applied to g ---> g = C.foo(g, *args, **kwargs)
+	"""
+	def helper(self, *args, **kwargs):
+		if len(args) == 1 and kwargs == {} and inspect.isroutine(args[0]):
+			return deco_func(self, args[0])
+		else:
+			def helper2(f):
+				return deco_func(self, f, *args, **kwargs)
+			return helper2
+	return helper
 
 class ClientAPI:
 	"""
 	This is a facade to simplify interacting with PyClient.
-	Please use a ClientAPI object instead of accessing other classes/modules in pyclient.
 	"""
 
-	def __init__(self, plugname=None):
-		if plugname is None:
-			# MAGIC PLUGIN NAME DETECTION
-			# Only include the module directly under 'plugins'
-			caller = inspect.stack()[1]
-			calling_module = inspect.getmodule(caller[0])
-			match = MODNAME_REGEX.match(calling_module.__name__)
-			assert match is not None
-			self._plugname = match.group()
-		else:
-			self._plugname = 'plugins.'+plugname
+	def __init__(self, plugname):
+		self._plugname = plugname
 	
 	def echo(self, line=''):
 		"""Prints a line to the output window."""
@@ -44,11 +53,17 @@ class ClientAPI:
 		"""Kills the connection, if there is one. No effect if there is no connection."""
 		_client.conn.disconnect()
 				
-	isConnected = property(lambda: _client.conn.getState() == STATE_CONNECTED)
-				
-	host = property(lambda: _client.conn.getHost())
+	@property
+	def isConnected(self):
+		return _client.conn.getState() == STATE_CONNECTED
 		
-	port = property(lambda: _client.conn.getPort())
+	@property
+	def host(self):
+		return _client.conn.getHost()
+		
+	@property
+	def port(self):
+		return _client.conn.getPort()
 		
 	def send(self, line):
 		"""Sends data to the server if connected."""
@@ -58,10 +73,13 @@ class ClientAPI:
 		"""Executes a command as if the user had typed it in the input box."""
 		_client.execute(self, line)
 			
-	def _config(self):
+	@property
+	def config(self):
 		return _client.cfg.setdefault(self._plugname,{})
 		
-	config = property(_config)
+	@config.setter
+	def _setConfig(self, config):
+		_client.cfg[self._plugname] = config
 	
 	def saveConfig(self):
 		"""Saves the current configuration to file. Useful for saving changes made to settings."""
@@ -71,17 +89,16 @@ class ClientAPI:
 		"""Registers a command with the client core."""
 		_client.addCommand(name_or_names, func, params, doc)
 	
-	def command(self, f, params='', doc=None):
-		"""Decorator to simplify calling addCommand."""
-		assert isinstance(f, types.FunctionType)
+	@magic_deco
+	def command(self, f, params='', doc=None, aliases=[]):
 		if doc is None:
 			if hasattr(f, '__doc__'):
 				doc = f.__doc__
 			else:
 				doc = ''
-		self.addCommand(f.func_name, f, params, doc)
+		self.addCommand([f.func_name] + aliases, f, params, doc)
 		return f
-			
+	
 	def addHook(self, name, func):
 		"""Registers an event hook with the client core."""
 		if name == 'lineReceived':
@@ -95,18 +112,44 @@ class ClientAPI:
 		else:
 			assert False
 	
-	def hook(self, name):
+	@magic_deco
+	def hook(self, f, name):
 		"""Decorator to simplify calling addHook."""
-		def _helper(f):
-			self.addHook(name,f)
-			return f
-		return _helper
+		self.addHook(name, f)
+		return f
+		
+	@property
+	def name(self):
+		return "PyClient"
+		
+	@property
+	def version(self):
+		# TODO
+		return None
+
+def getClient(plugname=None):
+	"""Returns a facade for plugins to use"""
+	
+	if plugname is None:
+		# MAGIC PLUGIN NAME DETECTION
+		# Only include the module directly under 'plugins'
+		caller = inspect.stack()[1]
+		calling_module = inspect.getmodule(caller[0])
+		match = MODNAME_REGEX.match(calling_module.__name__)
+		assert match is not None
+		final_plugname = match.group()
+	else:
+		final_plugname = 'plugins.'+plugname
+	
+	return ClientAPI(final_plugname)
 
 __all__ = [
-	'ClientAPI'
+	'getClient'
 ]
 
 # Add color codes, etc. from ta2 constants. Only require one import this way.
-for x in dir(ta2.Constants):
-	if x.startswith('EV_') or x.startswith('ANSI_'):
-		__all__.append(x)
+import ta2.Constants
+for name,val in ta2.Constants.__dict__.items():
+	if name.startswith('EV_') or name.startswith('ANSI_'):
+		globals()[name] = val
+		__all__.append(name)

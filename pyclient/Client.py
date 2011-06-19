@@ -68,6 +68,28 @@ def relative(a, b):
     return r 
     
 COMMAND_REGEX = re.compile(r'^/([a-zA-Z0-9_-]+)([ \t](.*))?$')
+PYTHON_IDENTIFIER_REGEX = re.compile(r'^[A-Za-z_][A-Za-z0-9_]*$')
+
+CONFIG_DEFAULTS = {
+	'input/font': 'monospace 10',
+	'output/font': 'monospace 10',
+	'output/fg/default': '#EEEEEE',
+	'output/fg/colors': [
+		'#000000',
+		'#FF0000',
+		'#00FF00',
+		'#FFFF00',
+		'#0000FF',
+		'#FF00FF',
+		'#00FFFF',
+		'#FFFFFF'
+	],
+	'output/bg/default': '#000000',
+	'output/urls': '#0000FF',
+	'server/host': 'tiberia.homeip.net',
+	'server/port': 1337,
+	'ui/size': [700,500]
+}
 
 class Client:
 	
@@ -85,21 +107,13 @@ class Client:
 		self.lineReceived = Event.Event()
 		self.xmlReceived = Event.Event()
 		self.log = Log.Log(self)
-		# TODO: Remove 'Config.currentConfig' entirely and have it only exist under Client
 		self._configPath = self.getPath('config.json')
 		self.cfg = Config.Config()
+		self.cfg.update(CONFIG_DEFAULTS)
 		if os.path.exists(self._configPath):
 			self.cfg.load(self._configPath)
-		self.addCommand(["connect","open"], self._cmdConnect, '[host [port]]', 'Connects to server. host:port format is also allowed.')
-		self.addCommand(["disconnect","close"], self._cmdClose, '', 'Disconnects from server.')
-		self.addCommand("echo", self._cmdEcho, '<text>', 'Displays a line of text in the output window.')
 		self.addCommand("version", self._cmdVersion, '[all]', 'Displays version information. Follow with "all" to send.')
-		#self.addCommand("colors", self._cmdColors, '', 'Shows available color codes.')
-		#self.addCommand("me", self._cmdMe, '<test>', 'Emulation of IRC /me command.')
-		self.addCommand("help", self._cmdHelp, '', 'Displays help information.')
-		#self.addCommand("eval", _cmdMe)
-		#else:
-		#	print "%s doesn't exist, using default settings" % (self._configPath)		
+		self.addCommand("help", self._cmdHelp, '', 'Displays help information.')	
 		pass	
 		
 	def getPath(self, relpath):
@@ -213,47 +227,7 @@ class Client:
 		elif host is not None and port is None:
 			self.conn.connect(host, 23)
 		else:
-			self.conn.connect(host, port)
-				
-	def _cmdConnect(self, params):
-		if len(params.strip()) > 0:
-			match = re.match("^\s*([^:\s]+)\s*:?\s*([0-9]+)?\s*$", params)
-			if match is not None:
-				host = match.group(1)
-				port = match.group(2)
-				if port is not None:
-					port = int(port)
-				self.connect(host, port)
-			else:
-				self.echo("Malformed host/port spec: %s" % params)
-				return
-		else:
-			self.connect()
-		
-	def _cmdClose(self, params):
-		self.conn.disconnect()
-		
-	def _cmdEcho(self, params):
-		self.echo(params)
-				
-	def _cmdColors(self, parms):
-		# TODO: Clean this up some
-		self.echo("Basic TA color codes:")
-		self.echo("\x1b[0m"  +   "<-0>  Default      \x1b[1m     <-1> Bold")
-		self.echo("\x1b[0m\x1b[31m<-31> Red          \x1b[1m<-31><-1> Bold Red")
-		self.echo("\x1b[0m\x1b[32m<-32> Green        \x1b[1m<-32><-1> Bold Green")
-		self.echo("\x1b[0m\x1b[33m<-33> Yellow       \x1b[1m<-33><-1> Bold Yellow")
-		self.echo("\x1b[0m\x1b[34m<-34> Blue         \x1b[1m<-34><-1> Bold Blue")
-		self.echo("\x1b[0m\x1b[35m<-35> Magenta      \x1b[1m<-35><-1> Bold Magenta")
-		self.echo("\x1b[0m\x1b[36m<-36> Cyan         \x1b[1m<-36><-1> Bold Cyan")
-		self.echo("\x1b[0m\x1b[37m<-37> White        \x1b[1m<-37><-1> Bold White")
-		self.echo("Extended TA2 codes:")
-		self.echo(EV_B+"<-b>Bold<-/b>      "+EV_NORMAL+EV_S+"<-s>Strikethrough<-/s>")
-		self.echo(EV_I+"<-i>Italic<-/i>    "+EV_NORMAL+EV_SETCOLOR+"ff8800<-cFF8800>Color</-c>")
-		self.echo(EV_U+"<-u>Underline<-/u>")
-		
-	def _cmdMe(self, parms):
-		self.send('.action '+parms)
+			self.conn.connect(host, port)		
 		
 	def _cmdVersion(self, parms):
 		# Process python version info
@@ -314,7 +288,7 @@ class Client:
 				self._showCommandHelp(c)
 				
 	def _isIdentifier(self, name):
-		return re.match(r'^[A-Za-z_][A-Za-z0-9_]*$', name)
+		return PYTHON_IDENTIFIER_REGEX.match(name)
 				
 	def _isPluginModule(self, path):
 		return path.lower().endswith('.py') and os.path.isfile(path)
