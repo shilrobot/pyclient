@@ -26,46 +26,6 @@ class Command:
 		self.func = func
 		self.params = params
 		self.doc = doc
-		
-# Levenshtein edit distance implementation by bbands from comp.lang.python
-# see http://groups.google.com/group/comp.lang.python/browse_frm/thread/43f3ef0bf88f40d2
-def distance(a,b):
-    c = {}
-    n = len(a); m = len(b)
-
-    for i in range(0,n+1):
-        c[i,0] = i
-    for j in range(0,m+1):
-        c[0,j] = j
-
-    for i in range(1,n+1):
-        for j in range(1,m+1):
-            x = c[i-1,j]+1
-            y = c[i,j-1]+1
-            if a[i-1] == b[j-1]:
-                z = c[i-1,j-1]
-            else:
-                z = c[i-1,j-1]+1
-            c[i,j] = min(x,y,z)
-    return c[n,m] 
-    
-# From same conversation as above
-def relative(a, b):
-    """
-    Computes a relative distance between two strings. Its in the range
-    (0-1] where 1 means total equality.
-    @type a: string
-    @param a: arg one
-    @type b: string
-    @param b: arg two
-    @rtype: float
-    @return: the distance
-    """
-    d = distance(a,b)
-    longer = float(max((len(a), len(b))))
-    shorter = float(min((len(a), len(b))))    
-    r = ((longer - d) / longer) * (shorter / longer)
-    return r 
     
 COMMAND_REGEX = re.compile(r'^/([a-zA-Z0-9_-]+)([ \t](.*))?$')
 PYTHON_IDENTIFIER_REGEX = re.compile(r'^[A-Za-z_][A-Za-z0-9_]*$')
@@ -334,4 +294,3 @@ class Client:
 		# extra blank line
 		if pluginsAttempted > 0:
 			self.echo()
-		

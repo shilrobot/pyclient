@@ -11,7 +11,7 @@ class Config(dict):
 		Note: Contents of config file are ***merged*** with the defaults!
 		"""
 		try:
-			with open(filename) as f:
+			with open(filename, "rb") as f:
 				self.update(json.load(f))
 			return True
 		except Exception, e:

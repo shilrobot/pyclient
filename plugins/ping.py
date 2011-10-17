@@ -51,7 +51,7 @@ class Pinger:
 		rxToken = line[-TOKEN_LENGTH:]
 		if rxToken == self._token:
 			pingTime = time.time() - self._startTime
-			print 't=%.3f'%pingTime
+			#print 't=%.3f'%pingTime
 			#echo('Ping: %d ms' % round(pingTime*1000))
 			self._pingTimes.append(pingTime)
 			if len(self._pingTimes) >= self._maxPings:
@@ -112,5 +112,6 @@ def disconnected():
 	
 @client.command
 def ping(args):
+	"""Pings the server and reports ping time statistics."""
 	pinger.sendPing(10)
 

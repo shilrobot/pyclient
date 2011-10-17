@@ -8,6 +8,7 @@ Stuff that's changed...
     /me -- Emulates /me from IRC clients for people that make that mistake
     /colors -- Shows a colorized list of color codes available in TA 
 * Parsing of lines now only occurs in one place, allowing proper "line received" events.
+* Config stored as json
 
 0.05 "She Plays Darts Like a Spanner"
 * PyClient is resurrected from BEYOND THE GRAVE
